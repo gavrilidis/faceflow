@@ -1,0 +1,33 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "S",    # flake8-bandit (security)
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "RET",  # flake8-return
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "RUF",  # Ruff-specific rules
+]
+ignore = [
+    "S104",  # Possible binding to all interfaces
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
