@@ -32,8 +32,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
       : "Extracting embedded previews from RAW files";
 
   return (
-    <div className="flex h-full w-full items-center justify-center px-16 py-20">
-      <div className="w-full max-w-[620px] rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] p-14 shadow-2xl shadow-black/40">
+    <div className="flex h-full w-full items-center justify-center px-20 py-24">
+      <div className="w-full max-w-[640px] rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] p-16 shadow-2xl shadow-black/40">
         {/* Phase indicator + percentage */}
         <div className="mb-12 flex items-center justify-between gap-8">
           <div className="flex items-start gap-5">
@@ -72,7 +72,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
               </p>
             </div>
           </div>
-          <span className="flex-shrink-0 text-5xl font-bold tabular-nums text-[var(--accent)]">
+          <span className="flex-shrink-0 text-5xl font-bold tabular-nums leading-none text-[var(--accent)]">
             {percentage}%
           </span>
         </div>

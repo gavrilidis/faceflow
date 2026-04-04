@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import foviaLogoSvg from "../assets/fovia_logo.svg";
+import foviaLogoPng from "../assets/Logo.png";
 import type { VolumeInfo } from "../types";
 
 interface DropZoneProps {
@@ -121,13 +121,13 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
       )}
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-12 px-16 py-24">
-        {/* Logo + branding — native SVG logo only, no duplicate text */}
-        <div className="flex flex-col items-center gap-8">
+      <div className="flex flex-1 flex-col items-center justify-center gap-14 px-16 py-28">
+        {/* Logo + branding — native PNG logo only, no duplicate text */}
+        <div className="flex flex-col items-center gap-10">
           <img
-            src={foviaLogoSvg}
+            src={foviaLogoPng}
             alt="Fovia"
-            className="h-28 w-28 drop-shadow-lg"
+            className="h-32 w-32 object-contain drop-shadow-xl"
           />
 
           <p className="max-w-md text-center text-[14px] leading-relaxed text-[var(--text-secondary)]">
@@ -143,7 +143,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
         {/* Browse button — symmetrical padding, perfectly centered */}
         <button
           onClick={handleBrowse}
-          className="flex items-center justify-center gap-3.5 rounded-2xl bg-[var(--accent)] px-16 py-5 text-[15px] font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition-all duration-150 hover:bg-[var(--accent-hover)] hover:shadow-xl hover:shadow-[var(--accent)]/35 active:scale-[0.97]"
+          className="flex items-center justify-center gap-3.5 rounded-2xl bg-[var(--accent)] px-20 py-5 text-[15px] font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition-all duration-150 hover:bg-[var(--accent-hover)] hover:shadow-xl hover:shadow-[var(--accent)]/35 active:scale-[0.97]"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path

@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { FaceGroup } from "../types";
 import { FaceSidebar } from "./FaceSidebar";
 import { PhotoGrid } from "./PhotoGrid";
-import foviaLogoSvg from "../assets/fovia_logo.svg";
+import foviaLogoPng from "../assets/Logo.png";
 
 interface GalleryViewProps {
   groups: FaceGroup[];
@@ -54,7 +54,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, onReset }) => 
       <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-10 py-6">
         {/* Left: branding + stats */}
         <div className="flex items-center gap-5">
-          <img src={foviaLogoSvg} alt="Fovia" className="h-8 w-8" />
+          <img src={foviaLogoPng} alt="Fovia" className="h-9 w-9 object-contain" />
           <h1 className="text-[15px] font-bold tracking-tight text-[var(--text-primary)]">
             Fovia
           </h1>
@@ -65,11 +65,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, onReset }) => 
         </div>
 
         {/* Right: action buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {selectedIds.size > 0 && (
             <button
               onClick={handleRevealInFinder}
-              className="flex items-center justify-center gap-3 rounded-xl bg-[var(--accent)] px-7 py-3.5 text-[13px] font-medium text-white shadow-sm transition-all duration-150 hover:bg-[var(--accent-hover)] active:scale-[0.97]"
+              className="flex items-center justify-center gap-3 rounded-xl bg-[var(--accent)] px-8 py-3.5 text-[13px] font-medium text-white shadow-sm transition-all duration-150 hover:bg-[var(--accent-hover)] active:scale-[0.97]"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path
@@ -83,7 +83,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, onReset }) => 
           )}
           <button
             onClick={onReset}
-            className="flex items-center justify-center gap-3 rounded-xl border border-[var(--border)] px-7 py-3.5 text-[13px] font-medium text-[var(--text-secondary)] transition-all duration-150 hover:border-[var(--text-secondary)]/30 hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            className="flex items-center justify-center gap-3 rounded-xl border border-[var(--border)] px-8 py-3.5 text-[13px] font-medium text-[var(--text-secondary)] transition-all duration-150 hover:border-[var(--text-secondary)]/30 hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path
