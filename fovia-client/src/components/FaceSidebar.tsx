@@ -13,24 +13,33 @@ export const FaceSidebar: React.FC<FaceSidebarProps> = ({
   onSelectGroup,
 }) => {
   return (
-    <div className="flex h-full w-64 flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-secondary)]">
-      <div className="border-b border-[var(--border)] px-5 py-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-          Faces ({groups.length})
+    <div className="flex h-full w-60 flex-shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-secondary)]">
+      <div className="px-5 py-4">
+        <h3 className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+          Faces
+          <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--bg-tertiary)] px-1.5 text-xs tabular-nums font-normal">
+            {groups.length}
+          </span>
         </h3>
       </div>
-      <div className="flex-1 overflow-y-auto py-1">
-        {groups.map((group) => (
+      <div className="flex-1 overflow-y-auto px-2 pb-2">
+        {groups.map((group, idx) => (
           <button
             key={group.id}
             onClick={() => onSelectGroup(group.id)}
-            className={`flex w-full items-center gap-3 px-5 py-3.5 transition-colors ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 transition-all ${
               selectedGroupId === group.id
-                ? "bg-[var(--accent)]/15 border-l-2 border-l-[var(--accent)]"
+                ? "bg-[var(--accent)]/15 shadow-sm"
                 : "hover:bg-[var(--bg-tertiary)]"
             }`}
           >
-            <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
+            <div
+              className={`h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-2 ${
+                selectedGroupId === group.id
+                  ? "ring-[var(--accent)]"
+                  : "ring-transparent"
+              } bg-[var(--bg-tertiary)]`}
+            >
               {group.representative.preview_base64 ? (
                 <img
                   src={`data:image/jpeg;base64,${group.representative.preview_base64}`}
@@ -58,11 +67,11 @@ export const FaceSidebar: React.FC<FaceSidebarProps> = ({
                 </div>
               )}
             </div>
-            <div className="text-left">
-              <div className="text-sm font-medium text-[var(--text-primary)]">
-                Person {groups.indexOf(group) + 1}
+            <div className="min-w-0 text-left">
+              <div className="truncate text-sm font-medium text-[var(--text-primary)]">
+                Person {idx + 1}
               </div>
-              <div className="text-xs text-[var(--text-secondary)]">
+              <div className="mt-0.5 text-xs tabular-nums text-[var(--text-secondary)]">
                 {group.members.length} photo{group.members.length !== 1 ? "s" : ""}
               </div>
             </div>

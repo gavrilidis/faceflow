@@ -9,26 +9,39 @@ interface PhotoGridProps {
 export const PhotoGrid: React.FC<PhotoGridProps> = ({ photos, personLabel }) => {
   if (photos.length === 0) {
     return (
-      <div className="flex h-full flex-1 items-center justify-center">
-        <p className="text-[var(--text-secondary)]">Select a person to view their photos</p>
+      <div className="flex h-full flex-1 flex-col items-center justify-center gap-3">
+        <svg
+          className="h-12 w-12 text-[var(--text-secondary)]/40"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+          />
+        </svg>
+        <p className="text-sm text-[var(--text-secondary)]">Select a person to view their photos</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">{personLabel}</h2>
-        <span className="text-sm text-[var(--text-secondary)]">
+      <div className="flex items-center justify-between px-6 py-4">
+        <h2 className="text-base font-semibold text-[var(--text-primary)]">{personLabel}</h2>
+        <span className="rounded-md bg-[var(--bg-tertiary)] px-2.5 py-1 text-xs tabular-nums text-[var(--text-secondary)]">
           {photos.length} photo{photos.length !== 1 ? "s" : ""}
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto px-6 pb-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {photos.map((photo) => (
             <div
               key={photo.face_id}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-[var(--bg-tertiary)]"
+              className="group relative aspect-square overflow-hidden rounded-xl bg-[var(--bg-tertiary)] shadow-md shadow-black/20 ring-1 ring-white/5"
             >
               {photo.preview_base64 ? (
                 <img

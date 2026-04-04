@@ -18,17 +18,26 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, onReset }) => 
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-3.5">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-6 py-3">
         <div className="flex items-center gap-4">
-          <h1 className="text-base font-semibold text-[var(--text-primary)]">Fovia</h1>
-          <span className="text-xs text-[var(--text-secondary)]">
+          <h1 className="text-base font-bold tracking-tight text-[var(--text-primary)]">Fovia</h1>
+          <div className="h-4 w-px bg-[var(--border)]" />
+          <span className="text-xs tabular-nums text-[var(--text-secondary)]">
             {groups.reduce((sum, g) => sum + g.members.length, 0)} faces in {groups.length} groups
           </span>
         </div>
         <button
           onClick={onReset}
-          className="rounded-lg px-4 py-2 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+          className="flex items-center gap-2 rounded-lg border border-[var(--border)] px-4 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:border-[var(--text-secondary)]/30 hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
         >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
+            />
+          </svg>
           New Scan
         </button>
       </div>

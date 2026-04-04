@@ -30,7 +30,20 @@ async def extract_faces(files: list[UploadFile]) -> BatchResponse:
             continue
 
         image_bytes = await file.read()
+        logger.info(
+            "Processing file %d/%d: %s (%d bytes, %s)",
+            img_idx + 1,
+            len(files),
+            file.filename,
+            len(image_bytes),
+            file.content_type,
+        )
         detected = face_service.detect_faces(image_bytes)
+        logger.info(
+            "  -> %d face(s) detected in %s",
+            len(detected),
+            file.filename,
+        )
 
         for face in detected:
             bbox = face.bbox.tolist()

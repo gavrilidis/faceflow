@@ -7,8 +7,10 @@ use tauri::{AppHandle, Emitter};
 
 use crate::services::{api_client::ApiClient, extractor, scanner};
 
-const BATCH_SIZE: usize = 50;
 const API_BASE_URL: &str = "http://127.0.0.1:8000";
+/// Max total bytes per API batch (~80 MB). Expedition photos can be 50-90 MB each,
+/// so this effectively sends 1-2 images per request, preventing transport failures.
+const MAX_BATCH_BYTES: usize = 80_000_000;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ScanProgress {
@@ -18,6 +20,8 @@ pub struct ScanProgress {
     pub faces_found: usize,
     pub errors: usize,
     pub last_error: String,
+    /// "scanning" while reading files, "detecting" while calling the API
+    pub phase: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -68,6 +72,10 @@ pub fn list_volumes() -> Vec<VolumeInfo> {
         .collect()
 }
 
+fn emit_progress(app: &AppHandle, progress: &ScanProgress) {
+    let _ = app.emit("scan-progress", progress.clone());
+}
+
 #[tauri::command]
 pub async fn scan_folder(app: AppHandle, folder_path: String) -> Result<ScanResult, String> {
     let root = PathBuf::from(&folder_path);
@@ -75,8 +83,9 @@ pub async fn scan_folder(app: AppHandle, folder_path: String) -> Result<ScanResu
         return Err(format!("Invalid folder: {folder_path}"));
     }
 
-    let raw_files = scanner::find_image_files(&root);
-    let total_files = raw_files.len();
+    // Phase 1: discover image files
+    let image_files = scanner::find_image_files(&root);
+    let total_files = image_files.len();
 
     if total_files == 0 {
         return Err("No image files found in the selected folder.".to_string());
@@ -88,89 +97,129 @@ pub async fn scan_folder(app: AppHandle, folder_path: String) -> Result<ScanResu
     let mut error_count = 0usize;
     let mut last_error = String::new();
 
-    for chunk in raw_files.chunks(BATCH_SIZE) {
-        let mut batch: Vec<(String, Vec<u8>)> = Vec::new();
-        let mut batch_paths: Vec<String> = Vec::new();
+    // Build dynamically-sized batches based on total byte size
+    let mut batch: Vec<(String, Vec<u8>)> = Vec::new();
+    let mut batch_paths: Vec<String> = Vec::new();
+    let mut batch_bytes = 0usize;
 
-        for path in chunk {
-            let filename = path
-                .file_name()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .to_string();
+    for (file_idx, path) in image_files.iter().enumerate() {
+        let filename = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
 
-            match extractor::extract_image_bytes(path) {
-                Ok(jpeg_data) => {
-                    batch_paths.push(path.to_string_lossy().to_string());
-                    batch.push((filename, jpeg_data));
-                }
-                Err(e) => {
-                    log::warn!("Skipping {}: {e}", path.display());
-                }
+        // Emit "scanning" phase while reading from disk
+        emit_progress(
+            &app,
+            &ScanProgress {
+                total_files,
+                processed,
+                current_file: filename.clone(),
+                faces_found: all_faces.len(),
+                errors: error_count,
+                last_error: last_error.clone(),
+                phase: "scanning".to_string(),
+            },
+        );
+
+        match extractor::extract_image_bytes(path) {
+            Ok(data) => {
+                batch_bytes += data.len();
+                batch_paths.push(path.to_string_lossy().to_string());
+                batch.push((filename.clone(), data));
             }
+            Err(e) => {
+                log::warn!("Skipping {}: {e}", path.display());
+            }
+        }
 
-            processed += 1;
-            let _ = app.emit(
-                "scan-progress",
-                ScanProgress {
+        // Flush batch when byte limit reached or at the last file
+        let is_last = file_idx + 1 == total_files;
+        if !batch.is_empty() && (batch_bytes >= MAX_BATCH_BYTES || is_last) {
+            let batch_file_count = batch.len();
+            log::info!(
+                "Sending batch of {} files ({:.1} MB) to API",
+                batch_file_count,
+                batch_bytes as f64 / 1_000_000.0,
+            );
+
+            // Show "detecting" phase while waiting for API
+            emit_progress(
+                &app,
+                &ScanProgress {
                     total_files,
                     processed,
-                    current_file: path
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string(),
+                    current_file: filename.clone(),
                     faces_found: all_faces.len(),
                     errors: error_count,
                     last_error: last_error.clone(),
+                    phase: "detecting".to_string(),
                 },
             );
-        }
 
-        if batch.is_empty() {
-            continue;
-        }
+            let preview_data: Vec<Vec<u8>> =
+                batch.iter().map(|(_, data)| data.clone()).collect();
 
-        // Store preview bytes for face cropping
-        let preview_data: Vec<Vec<u8>> = batch.iter().map(|(_, data)| data.clone()).collect();
+            match api.extract_faces(&batch).await {
+                Ok(response) => {
+                    for face in response.faces {
+                        let face_id = uuid::Uuid::new_v4().to_string();
+                        let embedding_json =
+                            serde_json::to_string(&face.embedding).unwrap_or_default();
 
-        match api.extract_faces(&batch).await {
-            Ok(response) => {
-                for face in response.faces {
-                    let face_id = uuid::Uuid::new_v4().to_string();
-                    let embedding_json = serde_json::to_string(&face.embedding).unwrap_or_default();
+                        let face_preview = if face.image_index < preview_data.len() {
+                            BASE64.encode(&preview_data[face.image_index])
+                        } else {
+                            String::new()
+                        };
 
-                    // Extract face crop from preview for avatar
-                    let face_preview = if face.image_index < preview_data.len() {
-                        BASE64.encode(&preview_data[face.image_index])
-                    } else {
-                        String::new()
-                    };
+                        let file_path = if face.image_index < batch_paths.len() {
+                            batch_paths[face.image_index].clone()
+                        } else {
+                            String::new()
+                        };
 
-                    let file_path = if face.image_index < batch_paths.len() {
-                        batch_paths[face.image_index].clone()
-                    } else {
-                        String::new()
-                    };
-
-                    all_faces.push(FaceEntry {
-                        face_id,
-                        file_path,
-                        bbox_x1: face.bbox.x1,
-                        bbox_y1: face.bbox.y1,
-                        bbox_x2: face.bbox.x2,
-                        bbox_y2: face.bbox.y2,
-                        embedding: embedding_json,
-                        detection_score: face.detection_score,
-                        preview_base64: face_preview,
-                    });
+                        all_faces.push(FaceEntry {
+                            face_id,
+                            file_path,
+                            bbox_x1: face.bbox.x1,
+                            bbox_y1: face.bbox.y1,
+                            bbox_x2: face.bbox.x2,
+                            bbox_y2: face.bbox.y2,
+                            embedding: embedding_json,
+                            detection_score: face.detection_score,
+                            preview_base64: face_preview,
+                        });
+                    }
+                }
+                Err(e) => {
+                    log::error!("API batch error: {e}");
+                    error_count += 1;
+                    last_error = e;
                 }
             }
-            Err(e) => {
-                log::error!("API batch error: {e}");
-                error_count += 1;
-                last_error = e;
-            }
+
+            // Update processed count AFTER API call completes
+            processed += batch_file_count;
+
+            // Emit progress after detection result is known
+            emit_progress(
+                &app,
+                &ScanProgress {
+                    total_files,
+                    processed,
+                    current_file: filename.clone(),
+                    faces_found: all_faces.len(),
+                    errors: error_count,
+                    last_error: last_error.clone(),
+                    phase: "scanning".to_string(),
+                },
+            );
+
+            batch.clear();
+            batch_paths.clear();
+            batch_bytes = 0;
         }
     }
 
