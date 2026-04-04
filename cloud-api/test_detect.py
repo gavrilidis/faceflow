@@ -1,4 +1,5 @@
 """Diagnostic script to test face detection pipeline end-to-end."""
+
 import sys
 import os
 import glob
@@ -27,7 +28,9 @@ for png_path in pngs:
         print(f"  {os.path.basename(png_path)}: cv2.imread FAILED")
         continue
     h, w = img.shape[:2]
-    print(f"  {os.path.basename(png_path)}: loaded {w}x{h}, channels={img.shape[2]}, dtype={img.dtype}")
+    print(
+        f"  {os.path.basename(png_path)}: loaded {w}x{h}, channels={img.shape[2]}, dtype={img.dtype}"
+    )
 
 # Now test with InsightFace
 from insightface.app import FaceAnalysis
@@ -75,9 +78,7 @@ import requests
 url = "http://127.0.0.1:8000/api/v1/extract-faces"
 files_payload = []
 for png_path in pngs:
-    files_payload.append(
-        ("files", (os.path.basename(png_path), open(png_path, "rb"), "image/png"))
-    )
+    files_payload.append(("files", (os.path.basename(png_path), open(png_path, "rb"), "image/png")))
 
 try:
     resp = requests.post(url, files=files_payload, timeout=120)
@@ -86,7 +87,9 @@ try:
     print(f"  images_processed: {data.get('images_processed')}")
     print(f"  total_faces_detected: {data.get('total_faces_detected')}")
     for face in data.get("faces", [])[:5]:
-        print(f"    face idx={face['index']}, img_idx={face['image_index']}, score={face['detection_score']:.3f}")
+        print(
+            f"    face idx={face['index']}, img_idx={face['image_index']}, score={face['detection_score']:.3f}"
+        )
 except Exception as e:
     print(f"  API call failed: {e}")
 finally:

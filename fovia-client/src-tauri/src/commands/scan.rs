@@ -8,9 +8,9 @@ use tauri::{AppHandle, Emitter};
 use crate::services::{api_client::ApiClient, extractor, scanner};
 
 const API_BASE_URL: &str = "http://127.0.0.1:8000";
-/// Max total bytes per API batch (~80 MB). Expedition photos can be 50-90 MB each,
-/// so this effectively sends 1-2 images per request, preventing transport failures.
-const MAX_BATCH_BYTES: usize = 80_000_000;
+/// Max total bytes per API batch (~10 MB). With local compression, each image
+/// is typically 100-300 KB, so this allows ~30-50 images per batch.
+const MAX_BATCH_BYTES: usize = 10_000_000;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ScanProgress {
@@ -158,8 +158,7 @@ pub async fn scan_folder(app: AppHandle, folder_path: String) -> Result<ScanResu
                 },
             );
 
-            let preview_data: Vec<Vec<u8>> =
-                batch.iter().map(|(_, data)| data.clone()).collect();
+            let preview_data: Vec<Vec<u8>> = batch.iter().map(|(_, data)| data.clone()).collect();
 
             match api.extract_faces(&batch).await {
                 Ok(response) => {
