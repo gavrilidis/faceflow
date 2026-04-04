@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { FaceGroup } from "../types";
 import { FaceSidebar } from "./FaceSidebar";
 import { PhotoGrid } from "./PhotoGrid";
+import { FoviaLogo } from "./FoviaLogo";
 
 interface GalleryViewProps {
   groups: FaceGroup[];
@@ -50,9 +51,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, onReset }) => 
   return (
     <div className="flex h-full w-full flex-col">
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-7 py-4">
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-secondary)] px-8 py-5">
         {/* Left: branding + stats */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
+          <FoviaLogo size={28} />
           <h1 className="text-[15px] font-bold tracking-tight text-[var(--text-primary)]">
             Fovia
           </h1>

@@ -162,15 +162,15 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Person header */}
-      <div className="flex items-center justify-between px-8 py-6">
+      <div className="flex items-center justify-between px-9 py-7">
         <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">{personLabel}</h2>
-        <span className="rounded-lg bg-[var(--bg-tertiary)] px-3 py-1.5 text-[11px] tabular-nums font-medium text-[var(--text-secondary)]">
+        <span className="rounded-lg bg-[var(--bg-tertiary)] px-3.5 py-1.5 text-[11px] tabular-nums font-medium text-[var(--text-secondary)]">
           {photos.length} photo{photos.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-8 pb-8">
+      <div className="flex-1 overflow-y-auto px-9 pb-9">
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {photos.map((photo) => (
             <PhotoCard

@@ -32,8 +32,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
       : "Extracting embedded previews from RAW files";
 
   return (
-    <div className="flex h-full w-full items-center justify-center px-8 py-12">
-      <div className="w-full max-w-[540px] rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] p-10 shadow-2xl shadow-black/40">
+    <div className="flex h-full w-full items-center justify-center px-10 py-14">
+      <div className="w-full max-w-[560px] rounded-3xl border border-[var(--border)] bg-[var(--bg-secondary)] p-12 shadow-2xl shadow-black/40">
         {/* Phase indicator + percentage */}
         <div className="mb-10 flex items-start justify-between gap-6">
           <div className="flex items-start gap-5">
@@ -78,7 +78,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
         </div>
 
         {/* Progress bar */}
-        <div className="mb-10 h-3 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
+        <div className="mb-10 h-3.5 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
               isDetecting
@@ -92,34 +92,34 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
         </div>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-5 py-5">
+        <div className="grid grid-cols-3 gap-5">
+          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-6 py-6">
             <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Prepared
             </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-[var(--text-primary)]">
+            <p className="mt-2.5 text-xl font-semibold tabular-nums text-[var(--text-primary)]">
               {progress.files_read}
               <span className="ml-1 text-[13px] font-normal text-[var(--text-secondary)]">
                 / {progress.total_files}
               </span>
             </p>
           </div>
-          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-5 py-5">
+          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-6 py-6">
             <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Analyzed
             </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-[var(--text-primary)]">
+            <p className="mt-2.5 text-xl font-semibold tabular-nums text-[var(--text-primary)]">
               {progress.processed}
               <span className="ml-1 text-[13px] font-normal text-[var(--text-secondary)]">
                 / {progress.total_files}
               </span>
             </p>
           </div>
-          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-5 py-5">
+          <div className="rounded-2xl bg-[var(--bg-tertiary)]/50 px-6 py-6">
             <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Faces
             </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-[var(--success)]">
+            <p className="mt-2.5 text-xl font-semibold tabular-nums text-[var(--success)]">
               {progress.faces_found}
             </p>
           </div>
@@ -127,7 +127,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
 
         {/* Current file */}
         {progress.current_file && (
-          <div className="mt-5 rounded-2xl bg-[var(--bg-tertiary)]/50 px-5 py-5">
+          <div className="mt-6 rounded-2xl bg-[var(--bg-tertiary)]/50 px-6 py-6">
             <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Current file
             </p>
@@ -142,7 +142,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ progress }) => {
 
         {/* Errors */}
         {progress.errors > 0 && (
-          <div className="mt-5 flex items-start gap-4 rounded-2xl bg-[var(--danger)]/10 px-5 py-5">
+          <div className="mt-6 flex items-start gap-4 rounded-2xl bg-[var(--danger)]/10 px-6 py-6">
             <svg
               className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--danger)]"
               fill="none"

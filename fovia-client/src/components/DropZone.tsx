@@ -121,12 +121,16 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
       )}
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-10 px-8 py-16">
-        {/* Logo + description */}
-        <div className="flex flex-col items-center gap-6">
-          <FoviaLogo className="text-[var(--text-primary)]" size={240} />
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-10 py-20">
+        {/* Logo + branding */}
+        <div className="flex flex-col items-center gap-5">
+          <FoviaLogo size={80} />
 
-          <p className="mt-2 max-w-sm text-center text-[13px] leading-relaxed text-[var(--text-secondary)]">
+          <h1 className="text-[22px] font-bold tracking-tight text-[var(--text-primary)]">
+            Fovia
+          </h1>
+
+          <p className="max-w-sm text-center text-[13px] leading-relaxed text-[var(--text-secondary)]">
             Drag a photo folder anywhere on this window, browse for a folder,
             or select a connected drive below.
           </p>
@@ -136,10 +140,10 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
           </p>
         </div>
 
-        {/* Browse button – generous, symmetrical padding */}
+        {/* Browse button */}
         <button
           onClick={handleBrowse}
-          className="flex items-center justify-center gap-3 rounded-2xl bg-[var(--accent)] px-12 py-4.5 text-[14px] font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition-all duration-150 hover:bg-[var(--accent-hover)] hover:shadow-xl hover:shadow-[var(--accent)]/35 active:scale-[0.97]"
+          className="flex items-center justify-center gap-3 rounded-2xl bg-[var(--accent)] px-14 py-4 text-[14px] font-semibold text-white shadow-lg shadow-[var(--accent)]/25 transition-all duration-150 hover:bg-[var(--accent-hover)] hover:shadow-xl hover:shadow-[var(--accent)]/35 active:scale-[0.97]"
         >
           <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path
@@ -153,11 +157,11 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
 
         {/* Connected drives */}
         {volumes.length > 0 && (
-          <div className="mt-2 w-full max-w-lg">
-            <h3 className="mb-4 px-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text-secondary)]/50">
+          <div className="mt-4 w-full max-w-lg">
+            <h3 className="mb-5 px-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[var(--text-secondary)]/50">
               Connected Drives
             </h3>
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {volumes.map((vol) => (
                 <button
                   key={vol.mount_point}
