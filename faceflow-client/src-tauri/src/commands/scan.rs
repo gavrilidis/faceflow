@@ -730,8 +730,12 @@ pub async fn scan_folder(
             .and_then(|e| e.to_str())
             .unwrap_or("")
             .to_lowercase();
-        let is_raw = scanner::is_raw_extension(&ext);
-        let read_phase = if is_raw { "scanning" } else { "compressing" };
+        let needs_exiftool = scanner::needs_exiftool(&ext);
+        let read_phase = if needs_exiftool {
+            "scanning"
+        } else {
+            "compressing"
+        };
 
         emit_progress(
             &app,

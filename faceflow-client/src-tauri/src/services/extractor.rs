@@ -29,7 +29,7 @@ pub fn extract_image_bytes(image_path: &Path) -> Result<Vec<u8>, String> {
         .and_then(|e| e.to_str())
         .unwrap_or("");
 
-    if scanner::is_raw_extension(ext) {
+    if scanner::needs_exiftool(ext) {
         let raw_jpeg = extract_jpeg_from_raw(image_path)?;
         apply_orientation_and_reencode(&raw_jpeg, JPEG_QUALITY)
     } else {

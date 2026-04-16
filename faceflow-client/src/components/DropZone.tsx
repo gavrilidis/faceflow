@@ -229,17 +229,28 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
             </div>
           </div>
 
-          {/* Footer */}
-          <p className="mt-6 text-center text-[11px] text-fg-muted/40">
-            Supports over 20+ image formats. AI-powered sorting for professional workflows.
-          </p>
+          {/* Supported formats info */}
+          <div className="mt-6 rounded-xl border border-edge bg-surface-elevated/30 px-6 py-4">
+            <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">Supported Formats</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {["CR2", "ARW", "NEF", "DNG", "ORF", "RW2", "RAF", "RAW", "HEIC", "HEIF", "AVIF", "JPEG", "PNG", "WebP", "TIFF", "BMP", "GIF"].map((fmt) => (
+                <span key={fmt} className="rounded-md bg-surface/80 px-2 py-0.5 text-[10px] font-medium tabular-nums text-fg-muted">
+                  {fmt}
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] text-fg-muted/50">
+              RAW, HEIC, and AVIF files are processed via ExifTool (auto-installed). Standard formats are decoded natively.
+            </p>
+          </div>
 
           {/* Detection threshold setting */}
           <div className="mt-5 flex items-center justify-between rounded-xl border border-edge bg-surface-elevated/50 px-6 py-4">
             <div>
               <h3 className="text-[13px] font-semibold text-fg">Detection Threshold</h3>
               <p className="mt-1 text-[11px] text-fg-muted">
-                Minimum confidence for face detection. Lower values find more faces but may include false positives.
+                Minimum confidence for face detection. Lower = more faces found (may include false positives).
+                Higher = fewer faces, more accurate. Recommended: 0.50.
               </p>
             </div>
             <div className="flex items-center gap-4">

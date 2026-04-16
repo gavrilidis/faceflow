@@ -100,6 +100,15 @@ const CodeBlock: React.FC<{ children: string }> = ({ children }) => (
   </div>
 );
 
+const Hint: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="mb-3 flex gap-2.5 rounded-lg border border-accent/20 bg-accent/5 px-3.5 py-2.5">
+    <svg className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+    </svg>
+    <p className="text-[11px] leading-relaxed text-fg-muted">{children}</p>
+  </div>
+);
+
 const InstallTab = () => (
   <div className="space-y-4">
     <SectionTitle>Installing FaceFlow</SectionTitle>
@@ -204,6 +213,29 @@ const WorkflowTab = () => (
       automatically grouped by time gaps. Adjust the time gap slider to control
       how events are split.
     </Para>
+
+    <SectionTitle>Face Grouping Accuracy</SectionTitle>
+    <Hint>
+      FaceFlow uses Agglomerative Hierarchical Clustering with centroid-based
+      comparison. This means the AI compares each face against the average of all
+      faces in a group, not just one photo. In some cases (extreme angles, lighting,
+      or partial occlusion), the same person may still appear as two groups. Use
+      "Move to..." to merge them manually.
+    </Hint>
+
+    <SectionTitle>Supported Image Formats</SectionTitle>
+    <Para>
+      FaceFlow supports all major camera and phone formats:
+    </Para>
+    <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
+      <li><span className="font-medium text-fg">RAW</span> — CR2, ARW, NEF, DNG, ORF, RW2, RAF</li>
+      <li><span className="font-medium text-fg">Apple</span> — HEIC, HEIF (iPhone/iPad photos)</li>
+      <li><span className="font-medium text-fg">Standard</span> — JPEG, PNG, WebP, TIFF, BMP, GIF, AVIF</li>
+    </ul>
+    <Hint>
+      RAW, HEIC, HEIF, and AVIF files require ExifTool for preview extraction.
+      ExifTool is automatically downloaded on first launch — no manual installation needed.
+    </Hint>
   </div>
 );
 
@@ -215,6 +247,11 @@ const SortingTab = () => (
       another group. This allows you to compare photos across multiple people and verify
       the AI's face grouping accuracy.
     </Para>
+    <Hint>
+      Use cross-person selection to verify the AI's grouping. If you see the same
+      person split across two groups, select all their photos in one group and use
+      "Move to..." to merge them into the other group.
+    </Hint>
 
     <SectionTitle>Moving Photos Between Persons</SectionTitle>
     <Para>
@@ -247,6 +284,10 @@ const SortingTab = () => (
       pick status, color label, or image quality (sharpness, open eyes). Filters
       apply to the active person group only.
     </Para>
+    <Hint>
+      Combine filters to find your best shots quickly: filter by 4+ stars, "Pick"
+      status, and "Sharp" quality to see only the top-tier images for each person.
+    </Hint>
   </div>
 );
 
@@ -327,6 +368,10 @@ const PrivacyTab = () => (
       initial model download, and checking for app updates. All other operations are
       fully offline.
     </Para>
+    <Hint>
+      After the first setup, you can use FaceFlow without any internet connection.
+      The app has a 30-day offline grace period for license verification.
+    </Hint>
   </div>
 );
 
