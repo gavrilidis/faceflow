@@ -154,7 +154,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       onMouseDown={handleWindowDrag}
     >
       {/* ── Row 1: Branding + Filters + Global Actions ── */}
-      <div className="flex h-11 items-center gap-3 px-4">
+      <div className="flex h-11 items-center gap-3 overflow-hidden px-4">
         {/* Left: branding */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <FaceFlowLogo size={22} />
@@ -178,7 +178,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("ai_search_placeholder")}
-            className="h-7 w-44 rounded-md border border-edge/50 bg-surface pl-7 pr-2 text-[11px] text-fg placeholder:text-fg-muted/50 outline-none transition-all focus:w-56 focus:border-accent/50 focus:ring-1 focus:ring-accent/20"
+            className="h-7 w-36 rounded-md border border-edge/50 bg-surface pl-7 pr-2 text-[11px] text-fg placeholder:text-fg-muted/50 outline-none transition-all focus:w-48 focus:border-accent/50 focus:ring-1 focus:ring-accent/20"
           />
           {searchQuery && (
             <button
@@ -193,7 +193,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 shrink items-center gap-1 overflow-hidden">
           <select
             value={filterRating}
             onChange={(e) => onFilterRatingChange(parseInt(e.target.value))}
@@ -283,7 +283,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <div className="h-3.5 w-px bg-edge" />
 
         {/* Global actions */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex flex-shrink-0 items-center gap-0.5">
           <IconBtn onClick={onToggleEventView} title="Timeline events" active={eventView}>
             <svg className="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -340,16 +340,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </IconBtn>
           )}
 
-          <button
+          <IconBtn
             onClick={onReset}
             title={t("toolbar_new_scan")}
-            className="ml-1 flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border border-edge px-2.5 text-[11px] font-medium text-fg-muted transition-all duration-150 hover:border-edge-light hover:bg-surface-elevated hover:text-fg"
           >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
             </svg>
-            {t("toolbar_new_scan")}
-          </button>
+          </IconBtn>
         </div>
       </div>
 

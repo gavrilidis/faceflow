@@ -264,4 +264,11 @@ export const ru: Record<TranslationKey, string> = {
   help_privacy_network_desc: "FaceFlow подключается к интернету только для: проверки активации лицензии, загрузки моделей и проверки обновлений. Все остальные операции выполняются оффлайн.",
   help_privacy_network_hint: "После первой настройки FaceFlow работает без интернета. Приложение имеет 30-дневный оффлайн-период для проверки лицензии.",
   settings_apply: "Применить",
+
+  // Photo badges
+  badge_closed_eyes: "Обнаружены закрытые глаза",
+  badge_low_sharpness: "Низкая резкость",
+  badge_picked: "Отобрано",
+  badge_rejected: "Отклонено",
+  badge_ai_tagged: "AI теги присвоены",
 };

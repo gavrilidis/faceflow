@@ -15,6 +15,7 @@ interface PhotoGridProps {
   onDeselectAll: () => void;
   hideBbox?: boolean;
   metaMap: Map<string, PhotoMeta>;
+  aiTags?: Map<string, string[]>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -27,7 +28,9 @@ const PhotoCard: React.FC<{
   onOpen: () => void;
   hideBbox?: boolean;
   meta?: PhotoMeta;
-}> = React.memo(({ photo, isSelected, onToggleSelect, onOpen, hideBbox, meta }) => {
+  tags?: string[];
+}> = React.memo(({ photo, isSelected, onToggleSelect, onOpen, hideBbox, meta, tags }) => {
+  const { t } = useI18n();
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fullImage, setFullImage] = useState<string | null>(null);
@@ -138,17 +141,19 @@ const PhotoCard: React.FC<{
 
       {/* Pick/Reject badge */}
       {meta && meta.pick_status === "pick" && (
-        <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-positive/90 text-white shadow-sm">
+        <div className="group/pk absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-positive/90 text-white shadow-sm cursor-help">
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
+          <span className="pointer-events-none absolute top-full right-0 mt-1.5 hidden whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] text-white shadow-lg group-hover/pk:block">{t("badge_picked")}</span>
         </div>
       )}
       {meta && meta.pick_status === "reject" && (
-        <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-negative/90 text-white shadow-sm">
+        <div className="group/rj absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-negative/90 text-white shadow-sm cursor-help">
           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
+          <span className="pointer-events-none absolute top-full right-0 mt-1.5 hidden whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] text-white shadow-lg group-hover/rj:block">{t("badge_rejected")}</span>
         </div>
       )}
 
@@ -162,17 +167,29 @@ const PhotoCard: React.FC<{
 
       {/* Quality indicators: closed eyes + blur */}
       {meta && meta.closed_eyes && (
-        <div className="absolute right-3 bottom-3 flex h-5 items-center gap-1 rounded-full bg-warning/90 px-1.5 shadow-sm" title="Closed eyes detected">
+        <div className="group/tip absolute right-3 bottom-3 flex h-5 items-center gap-1 rounded-full bg-warning/90 px-1.5 shadow-sm cursor-help">
           <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
           </svg>
+          <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] text-white shadow-lg group-hover/tip:block">{t("badge_closed_eyes")}</span>
         </div>
       )}
       {meta && meta.blur_score !== null && meta.blur_score < 50 && !meta.closed_eyes && (
-        <div className="absolute right-3 bottom-3 flex h-5 items-center gap-1 rounded-full bg-fg-muted/70 px-1.5 shadow-sm" title="Low sharpness">
+        <div className="group/tip absolute right-3 bottom-3 flex h-5 items-center gap-1 rounded-full bg-fg-muted/70 px-1.5 shadow-sm cursor-help">
           <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
+          <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] text-white shadow-lg group-hover/tip:block">{t("badge_low_sharpness")}</span>
+        </div>
+      )}
+
+      {/* AI tags badge */}
+      {tags && tags.length > 0 && (
+        <div className="group/ai absolute right-3 bottom-8 flex h-5 w-5 items-center justify-center rounded-full bg-accent/90 text-white shadow-sm cursor-help">
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+          </svg>
+          <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden whitespace-nowrap rounded-md bg-black/90 px-2 py-1 text-[11px] text-white shadow-lg group-hover/ai:block">{t("badge_ai_tagged")}</span>
         </div>
       )}
 
@@ -190,6 +207,11 @@ const PhotoCard: React.FC<{
         <p className="mt-0.5 text-[11px] text-white/60">
           {photo.detection_score > 0 ? `Score: ${(photo.detection_score * 100).toFixed(0)}%` : photo.file_path.split("/").pop()}
         </p>
+        {tags && tags.length > 0 && (
+          <p className="mt-1 line-clamp-2 text-[10px] text-accent/80">
+            {tags.slice(0, 8).join(" · ")}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -207,6 +229,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
   onDeselectAll,
   hideBbox,
   metaMap,
+  aiTags,
 }) => {
   const { t } = useI18n();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -279,6 +302,7 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
               onOpen={() => setViewerIndex(idx)}
               hideBbox={hideBbox}
               meta={metaMap.get(photo.file_path)}
+              tags={aiTags?.get(photo.file_path)}
             />
           ))}
         </div>

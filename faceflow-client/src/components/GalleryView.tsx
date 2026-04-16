@@ -279,6 +279,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
     setAiStatus(null);
     let successCount = 0;
     let failCount = 0;
+    let firstError = "";
     try {
       // If no photos selected, analyze all photos in current view
       const entriesToAnalyze = selectedPhotoIds.size > 0
@@ -313,6 +314,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
           });
         } catch (err) {
           failCount++;
+          if (!firstError) firstError = err instanceof Error ? err.message : String(err);
           console.error("AI analyze failed for", entry.file_path, err);
         }
       }
@@ -324,10 +326,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
       setAiAnalyzing(false);
       if (successCount > 0 || failCount > 0) {
         const msg = failCount > 0
-          ? `Done: ${successCount} tagged, ${failCount} failed`
+          ? `${successCount} tagged, ${failCount} failed${firstError ? ": " + firstError.slice(0, 100) : ""}`
           : `Done: ${successCount} photos tagged`;
         setAiStatus(msg);
-        setTimeout(() => setAiStatus(null), 4000);
+        setTimeout(() => setAiStatus(null), 8000);
       }
     }
   }, [selectedPhotoIds, allFacesMap, currentPhotos]);
@@ -574,6 +576,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
                       onDeselectAll={handleDeselectAll}
                       hideBbox
                       metaMap={metaMap}
+                      aiTags={aiTags}
                     />
                   </div>
                 );
@@ -590,6 +593,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
             onDeselectAll={handleDeselectAll}
             hideBbox={isNoFacesActive}
             metaMap={metaMap}
+            aiTags={aiTags}
           />
         )}
         {showExif && (

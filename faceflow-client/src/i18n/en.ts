@@ -262,6 +262,13 @@ export const en = {
   help_privacy_network_desc: "FaceFlow connects to the internet only for: license activation verification, initial model download, and checking for app updates. All other operations are fully offline.",
   help_privacy_network_hint: "After the first setup, you can use FaceFlow without any internet connection. The app has a 30-day offline grace period for license verification.",
   settings_apply: "Apply",
+
+  // Photo badges
+  badge_closed_eyes: "Closed eyes detected",
+  badge_low_sharpness: "Low sharpness",
+  badge_picked: "Picked",
+  badge_rejected: "Rejected",
+  badge_ai_tagged: "AI tags applied",
 } as const;
 
 export type TranslationKey = keyof typeof en;
