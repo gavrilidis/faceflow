@@ -24,7 +24,7 @@ function formatBytes(bytes: number): string {
 const FORMATS = ["CR2", "ARW", "NEF", "DNG", "ORF", "RW2", "RAF", "RAW", "HEIC", "HEIF", "AVIF", "JPEG", "PNG", "WebP", "TIFF", "BMP", "GIF"];
 
 export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
-  const { t, locale, setLocale, theme, setTheme } = useI18n();
+  const { t, locale, setLocale, theme, setTheme, glassIntensity, setGlassIntensity } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [volumes, setVolumes] = useState<VolumeInfo[]>([]);
   const [detectionThreshold, setDetectionThreshold] = useState(0.5);
@@ -187,6 +187,23 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
               </div>
             </div>
 
+            {/* Glass Intensity */}
+            <div className="mt-4">
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">{t("glass_intensity")}</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={glassIntensity}
+                  onChange={(e) => setGlassIntensity(parseFloat(e.target.value))}
+                  className="flex-1 accent-accent"
+                />
+                <span className="w-8 text-right text-[12px] tabular-nums text-fg-muted">{Math.round(glassIntensity * 100)}%</span>
+              </div>
+            </div>
+
             {/* AI Integration */}
             <div className="mt-4 border-t border-edge/30 pt-4">
               <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">{t("ai_integration")}</label>
@@ -340,12 +357,13 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
             </div>
           </div>
 
-          {/* Detection threshold — compact inline */}
-          <div className="mt-4 flex items-center gap-4 rounded-xl border border-edge bg-surface-elevated/50 px-5 py-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[12px] font-semibold text-fg">{t("detection_threshold")}</h3>
-              <p className="mt-0.5 text-[10px] text-fg-muted leading-snug">{t("recommended")}</p>
-            </div>
+          {/* Detection threshold */}
+          <div className="mt-4 rounded-xl border border-edge bg-surface-elevated/50 px-5 py-3">
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[12px] font-semibold text-fg">{t("detection_threshold")}</h3>
+                <p className="mt-0.5 text-[10px] text-fg-muted leading-snug">{t("recommended")}</p>
+              </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               <input
                 type="range"
@@ -361,6 +379,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
                 {detectionThreshold.toFixed(2)}
               </span>
             </div>
+            </div>
+            <p className="mt-2 text-[10px] text-fg-muted/60 leading-relaxed">{t("detection_threshold_desc")}</p>
           </div>
 
           {/* Supported formats — collapsible */}

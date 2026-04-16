@@ -11,7 +11,7 @@ export const FaceFlowLogo: React.FC<FaceFlowLogoProps> = ({ className, size = 64
     <img
       src={logoSrc}
       alt="FaceFlow"
-      className={className}
+      className={`${className ?? ""} dark:invert-0 [html[data-theme=light]_&]:invert`}
       width={size}
       height={size}
       style={{ objectFit: "contain" }}

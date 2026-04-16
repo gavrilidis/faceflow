@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useI18n } from "../i18n";
 
 interface HelpDialogProps {
   onClose: () => void;
@@ -6,13 +7,7 @@ interface HelpDialogProps {
 
 type Tab = "install" | "workflow" | "shortcuts" | "sorting" | "privacy";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "install", label: "Installation" },
-  { id: "workflow", label: "Workflow" },
-  { id: "sorting", label: "Photo Sorting" },
-  { id: "shortcuts", label: "Shortcuts" },
-  { id: "privacy", label: "Privacy" },
-];
+const TAB_IDS: Tab[] = ["install", "workflow", "sorting", "shortcuts", "privacy"];
 
 const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-edge bg-surface-elevated px-1.5 text-[10px] font-medium text-fg-muted">
@@ -28,7 +23,24 @@ const ShortcutRow: React.FC<{ keys: React.ReactNode; label: string }> = ({ keys,
 );
 
 export const HelpDialog: React.FC<HelpDialogProps> = ({ onClose }) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>("workflow");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const tabLabels: Record<Tab, string> = {
+    install: t("help_tab_install"),
+    workflow: t("help_tab_workflow"),
+    sorting: t("help_tab_sorting"),
+    shortcuts: t("help_tab_shortcuts"),
+    privacy: t("help_tab_privacy"),
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -39,7 +51,7 @@ export const HelpDialog: React.FC<HelpDialogProps> = ({ onClose }) => {
             <svg className="h-5 w-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
             </svg>
-            <h2 className="text-[14px] font-semibold text-fg">FaceFlow Help</h2>
+            <h2 className="text-[14px] font-semibold text-fg">{t("help_title")}</h2>
           </div>
           <button
             onClick={onClose}
@@ -53,18 +65,18 @@ export const HelpDialog: React.FC<HelpDialogProps> = ({ onClose }) => {
 
         {/* Tabs */}
         <div className="flex border-b border-edge px-5">
-          {TABS.map((tab) => (
+          {TAB_IDS.map((id) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              key={id}
+              onClick={() => setActiveTab(id)}
               className={`relative px-3 py-2.5 text-[12px] font-medium transition-colors ${
-                activeTab === tab.id
+                activeTab === id
                   ? "text-accent"
                   : "text-fg-muted hover:text-fg"
               }`}
             >
-              {tab.label}
-              {activeTab === tab.id && (
+              {tabLabels[id]}
+              {activeTab === id && (
                 <div className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-accent" />
               )}
             </button>
@@ -109,271 +121,174 @@ const Hint: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
-const InstallTab = () => (
-  <div className="space-y-4">
-    <SectionTitle>Installing FaceFlow</SectionTitle>
-    <Para>
-      Open the downloaded DMG file and drag FaceFlow to the Applications folder.
-      On first launch, macOS may block the app because it is not signed with an
-      Apple Developer certificate. There are two ways to allow it to run.
-    </Para>
+const InstallTab = () => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4">
+      <SectionTitle>{t("help_install_title")}</SectionTitle>
+      <Para>{t("help_install_intro")}</Para>
 
-    <SectionTitle>Option 1: System Settings (recommended)</SectionTitle>
-    <div className="space-y-2">
-      <Step number={1} title="Try to open FaceFlow">
-        Double-click the app in Applications. macOS will show a message that the app
-        cannot be opened because it is from an unidentified developer.
-      </Step>
-      <Step number={2} title="Open System Settings">
-        Go to System Settings (Apple menu) &gt; Privacy &amp; Security.
-      </Step>
-      <Step number={3} title="Allow the app">
-        Scroll down to the Security section. You will see a message:
-        "FaceFlow was blocked from use because it is not from an identified developer."
-        Click "Open Anyway" and confirm.
-      </Step>
-      <Step number={4} title="Launch again">
-        Open FaceFlow again. This time macOS will ask one more time — click Open.
-        After that the app will open normally every time.
-      </Step>
+      <SectionTitle>{t("help_install_option1")}</SectionTitle>
+      <div className="space-y-2">
+        <Step number={1} title={t("help_install_step1_title")}>{t("help_install_step1_desc")}</Step>
+        <Step number={2} title={t("help_install_step2_title")}>{t("help_install_step2_desc")}</Step>
+        <Step number={3} title={t("help_install_step3_title")}>{t("help_install_step3_desc")}</Step>
+        <Step number={4} title={t("help_install_step4_title")}>{t("help_install_step4_desc")}</Step>
+      </div>
+
+      <SectionTitle>{t("help_install_option2")}</SectionTitle>
+      <Para>{t("help_install_terminal_intro")}</Para>
+      <CodeBlock>{t("help_install_terminal_cmd")}</CodeBlock>
+      <Para>{t("help_install_terminal_desc")}</Para>
+
+      <SectionTitle>{t("help_install_first_launch")}</SectionTitle>
+      <Para>{t("help_install_first_launch_desc")}</Para>
+      <Para>{t("help_install_models_desc")}</Para>
+
+      <SectionTitle>{t("help_install_sysreq")}</SectionTitle>
+      <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
+        <li>{t("help_install_sysreq_macos")}</li>
+        <li>{t("help_install_sysreq_chip")}</li>
+        <li>{t("help_install_sysreq_disk")}</li>
+        <li>{t("help_install_sysreq_net")}</li>
+      </ul>
+      <Para>{t("help_install_selfcontained")}</Para>
     </div>
+  );
+};
 
-    <SectionTitle>Option 2: Terminal command</SectionTitle>
-    <Para>
-      Open Terminal (Applications &gt; Utilities &gt; Terminal) and run:
-    </Para>
-    <CodeBlock>xattr -cr "/Applications/FaceFlow.app"</CodeBlock>
-    <Para>
-      This removes the macOS quarantine flag from FaceFlow. After running this command,
-      the app will open without any warnings. If you installed FaceFlow to a different
-      location, replace the path accordingly.
-    </Para>
+const WorkflowTab = () => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4">
+      <SectionTitle>{t("help_workflow_title")}</SectionTitle>
+      <Para>{t("help_workflow_intro")}</Para>
 
-    <SectionTitle>First Launch</SectionTitle>
-    <Para>
-      On the first launch, FaceFlow will ask for a license key. Enter the serial number
-      you received. An internet connection is required for activation (one-time only).
-    </Para>
-    <Para>
-      After activation, FaceFlow will download two AI models (~183 MB total) for local
-      face detection. This happens once, and after that the app works fully offline.
-    </Para>
+      <div className="space-y-3">
+        <Step number={1} title={t("help_workflow_step1_title")}>{t("help_workflow_step1_desc")}</Step>
+        <Step number={2} title={t("help_workflow_step2_title")}>{t("help_workflow_step2_desc")}</Step>
+        <Step number={3} title={t("help_workflow_step3_title")}>{t("help_workflow_step3_desc")}</Step>
+        <Step number={4} title={t("help_workflow_step4_title")}>{t("help_workflow_step4_desc")}</Step>
+        <Step number={5} title={t("help_workflow_step5_title")}>{t("help_workflow_step5_desc")}</Step>
+      </div>
 
-    <SectionTitle>System Requirements</SectionTitle>
-    <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
-      <li>macOS 11.0 (Big Sur) or later</li>
-      <li>Apple Silicon (M1/M2/M3/M4) or Intel Mac</li>
-      <li>At least 500 MB of free disk space</li>
-      <li>Internet for first-time activation and model download</li>
-    </ul>
-    <Para>
-      No additional software (Homebrew, Python, Xcode, etc.) needs to be installed.
-      FaceFlow is fully self-contained.
-    </Para>
-  </div>
-);
+      <SectionTitle>{t("help_workflow_timeline_title")}</SectionTitle>
+      <Para>{t("help_workflow_timeline_desc")}</Para>
 
-const WorkflowTab = () => (
-  <div className="space-y-4">
-    <SectionTitle>Getting Started</SectionTitle>
-    <Para>
-      FaceFlow is a desktop photo management app designed for expedition photographers.
-      It uses AI face recognition to automatically group photos by person, then gives you
-      powerful tools to rate, label, and sort your collection.
-    </Para>
+      <SectionTitle>{t("help_workflow_accuracy_title")}</SectionTitle>
+      <Hint>{t("help_workflow_accuracy_hint")}</Hint>
 
-    <div className="space-y-3">
-      <Step number={1} title="Scan a Folder">
-        Drop a folder onto the app or click the scan area. FaceFlow will extract
-        embedded previews from RAW files and detect faces using a local AI model.
-        No photos leave your machine during this step.
-      </Step>
-      <Step number={2} title="Review Person Groups">
-        The sidebar shows automatically detected persons. Click a person to see
-        their photos. Double-click a person name to rename them.
-      </Step>
-      <Step number={3} title="Rate and Label">
-        Select photos and use star ratings (0-5), color labels, and pick/reject
-        flags to mark your best shots. Use keyboard shortcuts for speed.
-      </Step>
-      <Step number={4} title="Sort Between Persons">
-        If the AI grouped a photo under the wrong person, select it and use the
-        "Move to..." button in the toolbar to reassign it to the correct person
-        or create a new person group.
-      </Step>
-      <Step number={5} title="Compare and Export">
-        Select 2+ photos and use Compare view for side-by-side review. When ready,
-        export your picks to a destination folder.
-      </Step>
+      <SectionTitle>{t("help_workflow_formats_title")}</SectionTitle>
+      <Para>{t("help_workflow_formats_intro")}</Para>
+      <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
+        <li>{t("help_workflow_formats_raw")}</li>
+        <li>{t("help_workflow_formats_apple")}</li>
+        <li>{t("help_workflow_formats_standard")}</li>
+      </ul>
+      <Hint>{t("help_workflow_formats_hint")}</Hint>
     </div>
+  );
+};
 
-    <SectionTitle>Event Timeline</SectionTitle>
-    <Para>
-      Click the calendar icon in the toolbar to switch to event view. Photos are
-      automatically grouped by time gaps. Adjust the time gap slider to control
-      how events are split.
-    </Para>
+const SortingTab = () => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4">
+      <SectionTitle>{t("help_sorting_cross_title")}</SectionTitle>
+      <Para>{t("help_sorting_cross_desc")}</Para>
+      <Hint>{t("help_sorting_cross_hint")}</Hint>
 
-    <SectionTitle>Face Grouping Accuracy</SectionTitle>
-    <Hint>
-      FaceFlow uses Agglomerative Hierarchical Clustering with centroid-based
-      comparison. This means the AI compares each face against the average of all
-      faces in a group, not just one photo. In some cases (extreme angles, lighting,
-      or partial occlusion), the same person may still appear as two groups. Use
-      "Move to..." to merge them manually.
-    </Hint>
+      <SectionTitle>{t("help_sorting_move_title")}</SectionTitle>
+      <Para>{t("help_sorting_move_desc")}</Para>
+      <ol className="mb-3 list-inside list-decimal space-y-1.5 text-[12px] text-fg-muted">
+        <li>{t("help_sorting_move_step1")}</li>
+        <li>{t("help_sorting_move_step2")}</li>
+        <li>{t("help_sorting_move_step3")}</li>
+        <li>{t("help_sorting_move_step4")}</li>
+      </ol>
 
-    <SectionTitle>Supported Image Formats</SectionTitle>
-    <Para>
-      FaceFlow supports all major camera and phone formats:
-    </Para>
-    <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
-      <li><span className="font-medium text-fg">RAW</span> — CR2, ARW, NEF, DNG, ORF, RW2, RAF</li>
-      <li><span className="font-medium text-fg">Apple</span> — HEIC, HEIF (iPhone/iPad photos)</li>
-      <li><span className="font-medium text-fg">Standard</span> — JPEG, PNG, WebP, TIFF, BMP, GIF, AVIF</li>
-    </ul>
-    <Hint>
-      RAW, HEIC, HEIF, and AVIF files require ExifTool for preview extraction.
-      ExifTool is automatically downloaded on first launch — no manual installation needed.
-    </Hint>
-  </div>
-);
+      <SectionTitle>{t("help_sorting_selectall_title")}</SectionTitle>
+      <Para>{t("help_sorting_selectall_desc")}</Para>
 
-const SortingTab = () => (
-  <div className="space-y-4">
-    <SectionTitle>Cross-Person Selection</SectionTitle>
-    <Para>
-      Selecting photos in one person group does NOT deselect photos you selected in
-      another group. This allows you to compare photos across multiple people and verify
-      the AI's face grouping accuracy.
-    </Para>
-    <Hint>
-      Use cross-person selection to verify the AI's grouping. If you see the same
-      person split across two groups, select all their photos in one group and use
-      "Move to..." to merge them into the other group.
-    </Hint>
+      <SectionTitle>{t("help_sorting_rename_title")}</SectionTitle>
+      <Para>{t("help_sorting_rename_desc")}</Para>
 
-    <SectionTitle>Moving Photos Between Persons</SectionTitle>
-    <Para>
-      This is the core sorting function of FaceFlow. When the AI assigns a photo to
-      the wrong person:
-    </Para>
-    <ol className="mb-3 list-inside list-decimal space-y-1.5 text-[12px] text-fg-muted">
-      <li>Select the misassigned photo(s) by clicking them</li>
-      <li>Click "Move to..." in the toolbar</li>
-      <li>Choose the correct person from the dropdown, or click "New Person" to create a new group</li>
-      <li>The selected photos are moved instantly</li>
-    </ol>
-
-    <SectionTitle>Select All</SectionTitle>
-    <Para>
-      Use the "Select All" button in the photo grid header, or press{" "}
-      <Kbd>Cmd</Kbd> + <Kbd>A</Kbd> to select all photos in the current view.
-      Press <Kbd>Esc</Kbd> to deselect all.
-    </Para>
-
-    <SectionTitle>Renaming Persons</SectionTitle>
-    <Para>
-      Double-click a person's name in the sidebar to rename them. Press Enter to confirm
-      or Escape to cancel. Custom names are preserved throughout your session.
-    </Para>
-
-    <SectionTitle>Filters</SectionTitle>
-    <Para>
-      Use the filter dropdowns in the toolbar to narrow the current view by rating,
-      pick status, color label, or image quality (sharpness, open eyes). Filters
-      apply to the active person group only.
-    </Para>
-    <Hint>
-      Combine filters to find your best shots quickly: filter by 4+ stars, "Pick"
-      status, and "Sharp" quality to see only the top-tier images for each person.
-    </Hint>
-  </div>
-);
-
-const ShortcutsTab = () => (
-  <div className="space-y-4">
-    <SectionTitle>Ratings</SectionTitle>
-    <div className="rounded-lg border border-edge p-3">
-      <ShortcutRow keys={<Kbd>0</Kbd>} label="Clear rating" />
-      <ShortcutRow keys={<Kbd>1</Kbd>} label="1 star" />
-      <ShortcutRow keys={<Kbd>2</Kbd>} label="2 stars" />
-      <ShortcutRow keys={<Kbd>3</Kbd>} label="3 stars" />
-      <ShortcutRow keys={<Kbd>4</Kbd>} label="4 stars" />
-      <ShortcutRow keys={<Kbd>5</Kbd>} label="5 stars" />
+      <SectionTitle>{t("help_sorting_filters_title")}</SectionTitle>
+      <Para>{t("help_sorting_filters_desc")}</Para>
+      <Hint>{t("help_sorting_filters_hint")}</Hint>
     </div>
+  );
+};
 
-    <SectionTitle>Pick Status</SectionTitle>
-    <div className="rounded-lg border border-edge p-3">
-      <ShortcutRow keys={<Kbd>P</Kbd>} label="Pick" />
-      <ShortcutRow keys={<Kbd>X</Kbd>} label="Reject" />
-      <ShortcutRow keys={<Kbd>U</Kbd>} label="Unflag" />
-      <ShortcutRow keys={<Kbd>Backspace</Kbd>} label="Reject" />
+const ShortcutsTab = () => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4">
+      <SectionTitle>{t("help_shortcuts_ratings")}</SectionTitle>
+      <div className="rounded-lg border border-edge p-3">
+        <ShortcutRow keys={<Kbd>0</Kbd>} label={t("help_shortcuts_clear_rating")} />
+        <ShortcutRow keys={<Kbd>1</Kbd>} label={t("help_shortcuts_star", { n: "1" })} />
+        <ShortcutRow keys={<Kbd>2</Kbd>} label={t("help_shortcuts_stars", { n: "2" })} />
+        <ShortcutRow keys={<Kbd>3</Kbd>} label={t("help_shortcuts_stars", { n: "3" })} />
+        <ShortcutRow keys={<Kbd>4</Kbd>} label={t("help_shortcuts_stars", { n: "4" })} />
+        <ShortcutRow keys={<Kbd>5</Kbd>} label={t("help_shortcuts_stars", { n: "5" })} />
+      </div>
+
+      <SectionTitle>{t("help_shortcuts_pick_status")}</SectionTitle>
+      <div className="rounded-lg border border-edge p-3">
+        <ShortcutRow keys={<Kbd>P</Kbd>} label={t("help_shortcuts_pick")} />
+        <ShortcutRow keys={<Kbd>X</Kbd>} label={t("help_shortcuts_reject")} />
+        <ShortcutRow keys={<Kbd>U</Kbd>} label={t("help_shortcuts_unflag")} />
+        <ShortcutRow keys={<Kbd>Backspace</Kbd>} label={t("help_shortcuts_reject")} />
+      </div>
+
+      <SectionTitle>{t("help_shortcuts_color_labels")}</SectionTitle>
+      <div className="rounded-lg border border-edge p-3">
+        <ShortcutRow keys={<Kbd>6</Kbd>} label={t("help_shortcuts_red")} />
+        <ShortcutRow keys={<Kbd>7</Kbd>} label={t("help_shortcuts_yellow")} />
+        <ShortcutRow keys={<Kbd>8</Kbd>} label={t("help_shortcuts_green")} />
+        <ShortcutRow keys={<Kbd>9</Kbd>} label={t("help_shortcuts_blue")} />
+      </div>
+
+      <SectionTitle>{t("help_shortcuts_selection")}</SectionTitle>
+      <div className="rounded-lg border border-edge p-3">
+        <ShortcutRow keys={<><Kbd>Cmd</Kbd><span className="text-[10px] text-fg-muted">+</span><Kbd>A</Kbd></>} label={t("help_shortcuts_select_all")} />
+        <ShortcutRow keys={<Kbd>Esc</Kbd>} label={t("help_shortcuts_deselect")} />
+      </div>
+
+      <SectionTitle>{t("help_shortcuts_viewer")}</SectionTitle>
+      <div className="rounded-lg border border-edge p-3">
+        <ShortcutRow keys={<span className="text-[10px] text-fg-muted">{t("help_shortcuts_double_click")}</span>} label={t("help_shortcuts_open_viewer")} />
+        <ShortcutRow keys={<Kbd>Esc</Kbd>} label={t("help_shortcuts_close_viewer")} />
+      </div>
     </div>
+  );
+};
 
-    <SectionTitle>Color Labels</SectionTitle>
-    <div className="rounded-lg border border-edge p-3">
-      <ShortcutRow keys={<Kbd>6</Kbd>} label="Red" />
-      <ShortcutRow keys={<Kbd>7</Kbd>} label="Yellow" />
-      <ShortcutRow keys={<Kbd>8</Kbd>} label="Green" />
-      <ShortcutRow keys={<Kbd>9</Kbd>} label="Blue" />
+const PrivacyTab = () => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-4">
+      <SectionTitle>{t("help_privacy_local_title")}</SectionTitle>
+      <Para>{t("help_privacy_local_desc")}</Para>
+
+      <SectionTitle>{t("help_privacy_models_title")}</SectionTitle>
+      <Para>{t("help_privacy_models_desc")}</Para>
+      <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
+        <li>{t("help_privacy_model_det")}</li>
+        <li>{t("help_privacy_model_emb")}</li>
+      </ul>
+      <Para>{t("help_privacy_models_local")}</Para>
+
+      <SectionTitle>{t("help_privacy_activation_title")}</SectionTitle>
+      <Para>{t("help_privacy_activation_desc")}</Para>
+
+      <SectionTitle>{t("help_privacy_network_title")}</SectionTitle>
+      <Para>{t("help_privacy_network_desc")}</Para>
+      <Hint>{t("help_privacy_network_hint")}</Hint>
     </div>
-
-    <SectionTitle>Selection</SectionTitle>
-    <div className="rounded-lg border border-edge p-3">
-      <ShortcutRow keys={<><Kbd>Cmd</Kbd><span className="text-[10px] text-fg-muted">+</span><Kbd>A</Kbd></>} label="Select all in current view" />
-      <ShortcutRow keys={<Kbd>Esc</Kbd>} label="Deselect all" />
-    </div>
-
-    <SectionTitle>Photo Viewer</SectionTitle>
-    <div className="rounded-lg border border-edge p-3">
-      <ShortcutRow keys={<span className="text-[10px] text-fg-muted">Double-click</span>} label="Open full-screen viewer" />
-      <ShortcutRow keys={<Kbd>Esc</Kbd>} label="Close viewer" />
-    </div>
-  </div>
-);
-
-const PrivacyTab = () => (
-  <div className="space-y-4">
-    <SectionTitle>Your Data Stays Local</SectionTitle>
-    <Para>
-      FaceFlow processes all photos locally on your Mac. Face detection and embedding
-      generation use ONNX models that run directly on your machine. No photos, previews,
-      or face data are sent to external servers.
-    </Para>
-
-    <SectionTitle>Face Recognition Models</SectionTitle>
-    <Para>
-      FaceFlow uses two AI models downloaded during initial setup:
-    </Para>
-    <ul className="mb-3 list-inside list-disc space-y-1 text-[12px] text-fg-muted">
-      <li><span className="font-medium text-fg">det_10g.onnx</span> — Face detection (locates faces in photos)</li>
-      <li><span className="font-medium text-fg">w600k_r50.onnx</span> — Face embedding (generates numerical vectors for grouping)</li>
-    </ul>
-    <Para>
-      Models are stored locally in the app's data directory and run entirely offline
-      after the initial download.
-    </Para>
-
-    <SectionTitle>Activation</SectionTitle>
-    <Para>
-      FaceFlow requires a license key for activation. The activation process sends only
-      a machine identifier and your license key to verify validity. No photo data, file
-      paths, or personal information is transmitted during activation.
-    </Para>
-
-    <SectionTitle>Network Usage</SectionTitle>
-    <Para>
-      FaceFlow connects to the internet only for: license activation verification,
-      initial model download, and checking for app updates. All other operations are
-      fully offline.
-    </Para>
-    <Hint>
-      After the first setup, you can use FaceFlow without any internet connection.
-      The app has a 30-day offline grace period for license verification.
-    </Hint>
-  </div>
-);
+  );
+};
 
 const Step: React.FC<{ number: number; title: string; children: React.ReactNode }> = ({
   number,

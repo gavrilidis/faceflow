@@ -8,6 +8,7 @@ import { ExifPanel } from "./ExifPanel";
 import { ExportDialog } from "./ExportDialog";
 import { CompareView } from "./CompareView";
 import { HelpDialog } from "./HelpDialog";
+import { SettingsPanel } from "./SettingsPanel";
 import { usePhotoMeta } from "../hooks/usePhotoMeta";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useI18n } from "../i18n";
@@ -37,6 +38,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
   const [showExport, setShowExport] = React.useState(false);
   const [showCompare, setShowCompare] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
+  const [showSettings, setShowSettings] = React.useState(false);
   const [showOnboarding, setShowOnboarding] = React.useState(true);
 
   // Search & AI
@@ -154,16 +156,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
           if (meta && (meta.closed_eyes || (meta.blur_score !== null && meta.blur_score < 50))) return false;
         }
       }
-      // Text search: match file name or AI tags
+      // Text search: match file name, AI tags, or person group name
       if (query) {
         const fileName = photo.file_path.split("/").pop()?.toLowerCase() ?? "";
         const tags = aiTags.get(photo.file_path);
         const tagMatch = tags?.some((tag) => tag.toLowerCase().includes(query)) ?? false;
-        if (!fileName.includes(query) && !tagMatch) return false;
+        // Also match the active group name
+        const groupName = activeGroupId ? (groupNames.get(activeGroupId) ?? "") : "";
+        const nameMatch = groupName.toLowerCase().includes(query);
+        if (!fileName.includes(query) && !tagMatch && !nameMatch) return false;
       }
       return true;
     });
-  }, [currentPhotos, metaMap, filterRating, filterPick, filterLabel, filterQuality, searchQuery, aiTags]);
+  }, [currentPhotos, metaMap, filterRating, filterPick, filterLabel, filterQuality, searchQuery, aiTags, activeGroupId, groupNames]);
 
   // Resolve selected file paths — cross-group aware
   const selectedPhotoPaths = useMemo(() => {
@@ -451,6 +456,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
         onMovePhotos={handleMovePhotos}
         onCreateGroupAndMove={handleCreateGroupAndMove}
         onHelp={() => setShowHelp(true)}
+        onSettings={() => setShowSettings(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onAiAnalyze={handleAiAnalyze}
@@ -567,6 +573,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
       )}
       {showHelp && (
         <HelpDialog onClose={() => setShowHelp(false)} />
+      )}
+      {showSettings && (
+        <SettingsPanel onClose={() => setShowSettings(false)} />
       )}
     </div>
   );
