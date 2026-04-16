@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { StarRating } from "./StarRating";
 import { ColorLabelPicker } from "./ColorLabelPicker";
 import { FaceFlowLogo } from "./FaceFlowLogo";
+import { useI18n } from "../i18n";
 import type { FaceGroup, ColorLabel, PickStatus, PhotoMeta } from "../types";
 
 interface ToolbarProps {
@@ -39,6 +40,13 @@ interface ToolbarProps {
   onMovePhotos: (targetGroupId: string) => void;
   onCreateGroupAndMove: () => void;
   onHelp: () => void;
+  // Search
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  // AI
+  onAiAnalyze: () => void;
+  aiAnalyzing: boolean;
+  aiConfigured: boolean;
 }
 
 /* Small icon button */
@@ -94,7 +102,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onMovePhotos,
   onCreateGroupAndMove,
   onHelp,
+  searchQuery,
+  onSearchChange,
+  onAiAnalyze,
+  aiAnalyzing,
+  aiConfigured,
 }) => {
+  const { t } = useI18n();
   const handleWindowDrag = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("button, input, a, select, textarea")) return;
     getCurrentWindow().startDragging();
@@ -151,6 +165,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
         {/* Spacer */}
         <div className="min-w-2 flex-1" />
+
+        {/* Search bar */}
+        <div className="relative flex items-center">
+          <svg className="absolute left-2 h-3.5 w-3.5 text-fg-muted pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={t("ai_search_placeholder")}
+            className="h-7 w-44 rounded-md border border-edge/50 bg-surface pl-7 pr-2 text-[11px] text-fg placeholder:text-fg-muted/50 outline-none transition-all focus:w-56 focus:border-accent/50 focus:ring-1 focus:ring-accent/20"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="absolute right-1.5 flex h-4 w-4 items-center justify-center rounded text-fg-muted/60 hover:text-fg"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {/* Filters */}
         <div className="flex items-center gap-1">
@@ -434,14 +472,32 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           {/* Selection actions */}
           <div className="flex items-center gap-0.5">
             {selectedPhotoCount >= 2 && (
-              <IconBtn onClick={onCompare} title="Compare selected">
+              <IconBtn onClick={onCompare} title={t("toolbar_compare")}>
                 <svg className="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                 </svg>
               </IconBtn>
             )}
 
-            <IconBtn onClick={onRevealPhotos} title="Reveal in Finder">
+            {aiConfigured && (
+              <button
+                onClick={onAiAnalyze}
+                disabled={aiAnalyzing}
+                title={t("ai_analyze_selected")}
+                className={`flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-all duration-150 ${
+                  aiAnalyzing
+                    ? "border-accent/30 bg-accent/5 text-accent/60 cursor-wait"
+                    : "border-purple-500/30 text-purple-400 hover:border-purple-500/50 hover:bg-purple-500/10"
+                }`}
+              >
+                <svg className={`h-3.5 w-3.5 ${aiAnalyzing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                </svg>
+                {t("ai_analyze")}
+              </button>
+            )}
+
+            <IconBtn onClick={onRevealPhotos} title={t("toolbar_reveal")}>
               <svg className="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
               </svg>

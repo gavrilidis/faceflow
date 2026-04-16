@@ -19,6 +19,9 @@ Professional desktop utility for expedition photographers. Automates sorting of 
 | Licensing | Serial key + machine ID verified via Supabase, with 30-day offline grace period |
 | Updates | Signed auto-updates via GitHub Releases (`tauri-plugin-updater`) |
 | Dependencies | Fully self-contained — ExifTool and ONNX models are downloaded automatically on first launch |
+| Theming | Dark/Light/System themes with macOS glass-morphism UI |
+| Localization | English and Russian with runtime language switching |
+| AI Integration | Optional OpenAI/Anthropic API for intelligent photo tagging and search |
 
 ## Installation (End Users)
 
@@ -75,8 +78,13 @@ Output: `src-tauri/target/release/bundle/dmg/FaceFlow_*.dmg`
 
 ## Features
 
-- **AI Face Grouping** — Automatic person detection and clustering using cosine similarity
+### Core
+- **AI Face Grouping** — Automatic person detection and clustering using HAC algorithm (cosine similarity, threshold 0.38)
 - **RAW Support** — CR2, ARW, RAW, NEF, DNG, ORF, RW2, RAF with embedded JPEG preview extraction
+- **HEIC/HEIF/AVIF** — Apple and modern formats processed via ExifTool
+- **WebP, BMP, TIFF, GIF** — Standard formats decoded natively
+
+### Photographer Tools
 - **Star Ratings** (0-5), **Color Labels**, **Pick/Reject** flags
 - **Cross-Person Selection** — Select photos across multiple person groups for comparison
 - **Move Between Persons** — Reassign misidentified photos to the correct person group
@@ -86,9 +94,21 @@ Output: `src-tauri/target/release/bundle/dmg/FaceFlow_*.dmg`
 - **Quality Detection** — Blur score and closed-eye detection
 - **EXIF Inspector** — View full photo metadata
 - **Export** — Copy selected photos to a destination folder
+
+### UI & Experience
+- **Dark/Light/System Theme** — macOS glass-morphism design with backdrop blur
+- **Russian & English** — Full localization with runtime language switching
+- **AI Photo Search** — Search photos by keywords using AI-generated tags (OpenAI/Anthropic)
+- **Settings Panel** — Theme, language, AI API key configuration
+- **In-App Help** — Full documentation with keyboard shortcuts reference
 - **Auto-Updates** — Signed updates via GitHub Releases
 - **Offline-First** — Works without internet after initial setup (30-day grace period)
-- **In-App Help** — Full documentation with keyboard shortcuts reference
+
+### AI Integration (Optional)
+Connect your own OpenAI or Anthropic API key to enable:
+- **Smart Photo Tagging** — AI analyzes selected photos and generates descriptive tags
+- **Keyword Search** — Search your photo library by scene, objects, colors, emotions, activities
+- No photos leave your Mac unless you explicitly use AI analysis
 
 ## Keyboard Shortcuts
 
@@ -113,9 +133,13 @@ FaceFlow is currently distributed as an unsigned app. To distribute via the Mac 
 4. Use `codesign` and `notarytool` to sign and notarize the `.app` bundle
 5. After notarization, macOS will allow the app to open without Gatekeeper warnings
 
-## Supported RAW Formats
+## Supported Formats
 
-CR2, ARW, RAW, NEF, DNG, ORF, RW2, RAF
+| Category | Formats |
+|----------|---------|
+| RAW | CR2, ARW, RAW, NEF, DNG, ORF, RW2, RAF |
+| Apple/Modern | HEIC, HEIF, AVIF |
+| Standard | JPEG, PNG, WebP, BMP, TIFF, GIF |
 
 ## License
 

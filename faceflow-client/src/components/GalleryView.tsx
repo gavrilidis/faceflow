@@ -10,6 +10,8 @@ import { CompareView } from "./CompareView";
 import { HelpDialog } from "./HelpDialog";
 import { usePhotoMeta } from "../hooks/usePhotoMeta";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
+import { useI18n } from "../i18n";
+import { isAiConfigured, analyzePhoto } from "../services/aiService";
 
 interface GalleryViewProps {
   groups: FaceGroup[];
@@ -20,6 +22,8 @@ interface GalleryViewProps {
 const NO_FACES_ID = "__no_faces__";
 
 export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, onReset }) => {
+  const { t } = useI18n();
+
   // Mutable groups — allow moving photos between persons
   const [mutableGroups, setMutableGroups] = React.useState<FaceGroup[]>(groups);
   const [groupNames, setGroupNames] = React.useState<Map<string, string>>(new Map());
@@ -34,6 +38,18 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
   const [showCompare, setShowCompare] = React.useState(false);
   const [showHelp, setShowHelp] = React.useState(false);
   const [showOnboarding, setShowOnboarding] = React.useState(true);
+
+  // Search & AI
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [aiAnalyzing, setAiAnalyzing] = React.useState(false);
+  const [aiTags, setAiTags] = React.useState<Map<string, string[]>>(() => {
+    // Restore cached AI tags from localStorage
+    try {
+      const cached = localStorage.getItem("faceflow-ai-tags");
+      if (cached) return new Map(JSON.parse(cached));
+    } catch { /* ignore */ }
+    return new Map();
+  });
 
   // Filters
   const [filterRating, setFilterRating] = React.useState(0);
@@ -115,8 +131,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
     return () => { cancelled = true; };
   }, [eventView, eventGap, allFilePaths]);
 
-  // Filter photos based on metadata
+  // Filter photos based on metadata and search query
   const filteredPhotos = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
     return currentPhotos.filter((photo) => {
       const meta = metaMap.get(photo.file_path);
       if (filterRating > 0) {
@@ -137,9 +154,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
           if (meta && (meta.closed_eyes || (meta.blur_score !== null && meta.blur_score < 50))) return false;
         }
       }
+      // Text search: match file name or AI tags
+      if (query) {
+        const fileName = photo.file_path.split("/").pop()?.toLowerCase() ?? "";
+        const tags = aiTags.get(photo.file_path);
+        const tagMatch = tags?.some((tag) => tag.toLowerCase().includes(query)) ?? false;
+        if (!fileName.includes(query) && !tagMatch) return false;
+      }
       return true;
     });
-  }, [currentPhotos, metaMap, filterRating, filterPick, filterLabel, filterQuality]);
+  }, [currentPhotos, metaMap, filterRating, filterPick, filterLabel, filterQuality, searchQuery, aiTags]);
 
   // Resolve selected file paths — cross-group aware
   const selectedPhotoPaths = useMemo(() => {
@@ -237,6 +261,38 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
   const handleDeselectAll = useCallback(() => {
     setSelectedPhotoIds(new Set());
   }, []);
+
+  // AI analyze selected photos
+  const handleAiAnalyze = useCallback(async () => {
+    if (selectedPhotoIds.size === 0 || !isAiConfigured()) return;
+    setAiAnalyzing(true);
+    try {
+      const selectedEntries = Array.from(selectedPhotoIds)
+        .map((id) => allFacesMap.get(id))
+        .filter((f): f is FaceEntry => f !== undefined);
+
+      for (const entry of selectedEntries) {
+        try {
+          // Read photo as base64 via Tauri
+          const base64 = await invoke<string>("read_photo_base64", { filePath: entry.file_path });
+          const result = await analyzePhoto(base64);
+          setAiTags((prev) => {
+            const next = new Map(prev);
+            next.set(entry.file_path, result.tags);
+            // Persist to localStorage
+            try {
+              localStorage.setItem("faceflow-ai-tags", JSON.stringify([...next]));
+            } catch { /* quota exceeded, ignore */ }
+            return next;
+          });
+        } catch {
+          // Skip failed photos
+        }
+      }
+    } finally {
+      setAiAnalyzing(false);
+    }
+  }, [selectedPhotoIds, allFacesMap]);
 
   // Move selected photos to a target person group
   const handleMovePhotos = useCallback((targetGroupId: string) => {
@@ -395,6 +451,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
         onMovePhotos={handleMovePhotos}
         onCreateGroupAndMove={handleCreateGroupAndMove}
         onHelp={() => setShowHelp(true)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onAiAnalyze={handleAiAnalyze}
+        aiAnalyzing={aiAnalyzing}
+        aiConfigured={isAiConfigured()}
       />
 
       {/* Content area */}
@@ -404,7 +465,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ groups, noFaceFiles, o
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
           </svg>
           <p className="flex-1 text-[11px] leading-relaxed text-fg-muted">
-            <span className="font-semibold text-fg">Review face groups carefully.</span> The AI groups similar faces together, but the same person may appear in multiple groups. Use <span className="font-medium text-accent">"Move to..."</span> in the toolbar to merge them. Double-click a person name to rename it. Press <span className="font-medium">?</span> for help.
+            <span className="font-semibold text-fg">{t("gallery_onboarding").split(".")[0]}.</span>{" "}
+            {t("gallery_onboarding").split(".").slice(1).join(".")}{" "}
+            <span className="text-fg-muted/70">{t("gallery_onboarding_help")}</span>
           </p>
           <button
             onClick={() => setShowOnboarding(false)}

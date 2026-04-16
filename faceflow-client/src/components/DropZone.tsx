@@ -3,7 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { FaceFlowLogo } from "./FaceFlowLogo";
+import { useI18n } from "../i18n";
+import { getAiApiKey, setAiApiKey as saveAiApiKey, getAiProvider, setAiProvider as saveAiProvider } from "../services/aiService";
+import type { AiProvider } from "../services/aiService";
 import type { VolumeInfo } from "../types";
+import type { Locale, Theme } from "../i18n";
 
 interface DropZoneProps {
   onFolderSelected: (path: string, detectionThreshold: number) => void;
@@ -17,10 +21,17 @@ function formatBytes(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
+const FORMATS = ["CR2", "ARW", "NEF", "DNG", "ORF", "RW2", "RAF", "RAW", "HEIC", "HEIF", "AVIF", "JPEG", "PNG", "WebP", "TIFF", "BMP", "GIF"];
+
 export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
+  const { t, locale, setLocale, theme, setTheme } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [volumes, setVolumes] = useState<VolumeInfo[]>([]);
   const [detectionThreshold, setDetectionThreshold] = useState(0.5);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showFormats, setShowFormats] = useState(false);
+  const [aiApiKey, setAiApiKeyState] = useState(getAiApiKey);
+  const [aiProvider, setAiProviderState] = useState<AiProvider>(getAiProvider);
   const dragCounter = useRef(0);
 
   useEffect(() => {
@@ -72,7 +83,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
         }
       }
     },
-    [onFolderSelected],
+    [onFolderSelected, detectionThreshold],
   );
 
   const handleBrowse = useCallback(async () => {
@@ -121,107 +132,207 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
                 d="M12 16V4m0 0L8 8m4-4l4 4M4 14v4a2 2 0 002 2h12a2 2 0 002-2v-4"
               />
             </svg>
-            <p className="text-lg font-semibold text-accent">Drop folder here</p>
-            <p className="text-sm text-fg-muted">Release to start scanning</p>
+            <p className="text-lg font-semibold text-accent">{t("drop_here")}</p>
+            <p className="text-sm text-fg-muted">{t("drop_release")}</p>
           </div>
         </div>
       )}
 
-      {/* Main content — fills entire window, no card boundary */}
+      {/* Settings panel overlay */}
+      {showSettings && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-surface/60 backdrop-blur-sm" onClick={() => setShowSettings(false)}>
+          <div className="glass w-80 rounded-2xl p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-[15px] font-semibold text-fg">{t("settings")}</h3>
+              <button onClick={() => setShowSettings(false)} className="rounded-lg p-1 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Theme */}
+            <div className="mb-4">
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">{t("theme")}</label>
+              <div className="flex gap-1.5 rounded-lg bg-surface/60 p-1">
+                {(["dark", "light", "system"] as Theme[]).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setTheme(opt)}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-all ${
+                      theme === opt ? "bg-accent text-white shadow-sm" : "text-fg-muted hover:text-fg"
+                    }`}
+                  >
+                    {t(`theme_${opt}` as "theme_dark" | "theme_light" | "theme_system")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Language */}
+            <div>
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">{t("language")}</label>
+              <div className="flex gap-1.5 rounded-lg bg-surface/60 p-1">
+                {(["en", "ru"] as Locale[]).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setLocale(opt)}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-all ${
+                      locale === opt ? "bg-accent text-white shadow-sm" : "text-fg-muted hover:text-fg"
+                    }`}
+                  >
+                    {t(`lang_${opt}` as "lang_en" | "lang_ru")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Integration */}
+            <div className="mt-4 border-t border-edge/30 pt-4">
+              <label className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">{t("ai_integration")}</label>
+              <div className="mb-3 flex gap-1.5 rounded-lg bg-surface/60 p-1">
+                {(["openai", "anthropic"] as AiProvider[]).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => { setAiProviderState(opt); saveAiProvider(opt); }}
+                    className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-all ${
+                      aiProvider === opt ? "bg-accent text-white shadow-sm" : "text-fg-muted hover:text-fg"
+                    }`}
+                  >
+                    {opt === "openai" ? "OpenAI" : "Anthropic"}
+                  </button>
+                ))}
+              </div>
+              <div className="relative">
+                <input
+                  type="password"
+                  value={aiApiKey}
+                  onChange={(e) => { setAiApiKeyState(e.target.value); saveAiApiKey(e.target.value); }}
+                  placeholder={t("ai_api_key_placeholder")}
+                  className="w-full rounded-lg border border-edge/40 bg-surface/60 px-3 py-2 text-[12px] text-fg placeholder:text-fg-muted/40 outline-none transition-all focus:border-accent/50 focus:ring-1 focus:ring-accent/20"
+                />
+                {aiApiKey && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-positive">
+                    {t("ai_connected")}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top-right settings button */}
+      <div className="absolute top-3 right-4 z-10 flex gap-2">
+        <button
+          onClick={() => setShowSettings(true)}
+          className="rounded-lg p-2 text-fg-muted/50 transition-colors hover:bg-surface-elevated/50 hover:text-fg-muted"
+          title={t("settings")}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Main content */}
       <div
-        className="flex flex-1 flex-col items-center justify-center px-12 pt-[50px] pb-10"
+        className="flex flex-1 flex-col items-center overflow-y-auto px-8 pt-[50px] pb-8"
         onMouseDown={handleWindowDrag}
       >
-        <div className="w-full max-w-[780px]">
-          {/* Logo icon */}
-          <div className="flex justify-center mb-6">
-            <FaceFlowLogo size={72} />
+        <div className="w-full max-w-[720px]">
+          {/* Logo */}
+          <div className="flex justify-center mb-4">
+            <FaceFlowLogo size={56} />
           </div>
 
           {/* Title */}
-          <h1 className="text-center text-[22px] font-bold uppercase tracking-[0.08em] text-fg leading-tight">
-            Select photo archive to<br />begin identification.
+          <h1 className="text-center text-[20px] font-bold uppercase tracking-[0.08em] text-fg leading-tight whitespace-pre-line">
+            {t("dropzone_title")}
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-4 text-center text-[13px] text-fg-muted">
-            Identify faces across your photo collection. Drag & drop a folder, or select a source below.
+          <p className="mt-3 text-center text-[12px] text-fg-muted leading-relaxed">
+            {t("dropzone_subtitle")}
           </p>
 
+          {/* Drag & drop hint */}
+          <div className="mt-2 flex items-center justify-center gap-1.5">
+            <svg className="h-3 w-3 text-fg-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
+            </svg>
+            <span className="text-[10px] text-fg-muted/40">{t("dropzone_drag_hint")}</span>
+          </div>
+
           {/* SELECT SOURCE label */}
-          <h3 className="mt-8 mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">
-            Select Source
+          <h3 className="mt-6 mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">
+            {t("select_source")}
           </h3>
 
           {/* Source cards grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {/* Browse Folder card */}
             <button
               onClick={handleBrowse}
-              className="group flex flex-col rounded-xl border border-edge bg-surface-elevated/50 p-6 text-left transition-all duration-150 hover:border-accent/40 hover:bg-surface-elevated"
+              className="group flex flex-col rounded-xl border border-edge bg-surface-elevated/50 p-5 text-left transition-all duration-150 hover:border-accent/40 hover:bg-surface-elevated"
             >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-surface/60 text-fg-muted transition-colors group-hover:text-accent">
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-surface/60 text-fg-muted transition-colors group-hover:text-accent">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] text-fg-muted">Local Folders</p>
-                  <p className="text-[15px] font-semibold text-fg">Browse Folder</p>
+                  <p className="text-[10px] text-fg-muted">{t("local_folders")}</p>
+                  <p className="text-[14px] font-semibold text-fg">{t("browse_folder")}</p>
                 </div>
               </div>
-              <p className="text-[12px] text-fg-muted mb-5">Select folder or drag here.</p>
-              <div className="mt-auto flex w-full items-center justify-center rounded-lg bg-accent/15 py-2.5 text-[13px] font-medium text-accent transition-colors group-hover:bg-accent group-hover:text-white">
-                Scan Folder
+              <p className="text-[11px] text-fg-muted mb-3">{t("browse_folder_desc")}</p>
+              <div className="mt-auto flex w-full items-center justify-center rounded-lg bg-accent/15 py-2 text-[12px] font-medium text-accent transition-colors group-hover:bg-accent group-hover:text-white">
+                {t("scan_folder")}
               </div>
             </button>
 
             {/* Drives card */}
-            <div className="flex flex-col gap-3 rounded-xl border border-edge bg-surface-elevated/50 p-5">
+            <div className="flex flex-col gap-2.5 rounded-xl border border-edge bg-surface-elevated/50 p-4">
               {volumes.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center text-[12px] text-fg-muted/50">
-                  No drives detected
+                <div className="flex flex-1 items-center justify-center text-[11px] text-fg-muted/50">
+                  {t("no_drives")}
                 </div>
               ) : (
                 volumes.map((vol) => (
-                  <div
-                    key={vol.mount_point}
-                    className="flex items-center gap-4"
-                  >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-surface/60 text-fg-muted">
+                  <div key={vol.mount_point} className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-surface/60 text-fg-muted">
                       {vol.is_removable ? (
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 3H9a2 2 0 00-2 2v14a2 2 0 002 2h6a2 2 0 002-2V5a2 2 0 00-2-2z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6h1m0 3h1" />
                         </svg>
                       ) : (
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2v5a2 2 0 002 2z" />
                         </svg>
                       )}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium text-fg">{vol.name}</p>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <div className="h-[4px] min-w-0 flex-1 overflow-hidden rounded-full bg-surface">
-                          <div
-                            className="h-full rounded-full bg-accent/60"
-                            style={{ width: `${usedPercent(vol)}%` }}
-                          />
+                      <p className="truncate text-[12px] font-medium text-fg">{vol.name}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="h-[3px] min-w-0 flex-1 overflow-hidden rounded-full bg-surface">
+                          <div className="h-full rounded-full bg-accent/60" style={{ width: `${usedPercent(vol)}%` }} />
                         </div>
-                        <span className="flex-shrink-0 text-[10px] tabular-nums text-fg-muted">
-                          {formatBytes(vol.available_bytes)} free
+                        <span className="flex-shrink-0 text-[9px] tabular-nums text-fg-muted">
+                          {formatBytes(vol.available_bytes)}
                         </span>
                       </div>
                     </div>
 
                     <button
                       onClick={() => onFolderSelected(vol.mount_point, detectionThreshold)}
-                      className="flex-shrink-0 rounded-lg bg-surface/80 px-3 py-1.5 text-[11px] font-medium text-fg-muted transition-all hover:bg-accent hover:text-white"
+                      className="flex-shrink-0 rounded-lg bg-surface/80 px-2.5 py-1 text-[10px] font-medium text-fg-muted transition-all hover:bg-accent hover:text-white"
                     >
-                      Scan Drive
+                      {t("scan_drive")}
                     </button>
                   </div>
                 ))
@@ -229,31 +340,13 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
             </div>
           </div>
 
-          {/* Supported formats info */}
-          <div className="mt-6 rounded-xl border border-edge bg-surface-elevated/30 px-6 py-4">
-            <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-fg-muted/60">Supported Formats</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {["CR2", "ARW", "NEF", "DNG", "ORF", "RW2", "RAF", "RAW", "HEIC", "HEIF", "AVIF", "JPEG", "PNG", "WebP", "TIFF", "BMP", "GIF"].map((fmt) => (
-                <span key={fmt} className="rounded-md bg-surface/80 px-2 py-0.5 text-[10px] font-medium tabular-nums text-fg-muted">
-                  {fmt}
-                </span>
-              ))}
+          {/* Detection threshold — compact inline */}
+          <div className="mt-4 flex items-center gap-4 rounded-xl border border-edge bg-surface-elevated/50 px-5 py-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[12px] font-semibold text-fg">{t("detection_threshold")}</h3>
+              <p className="mt-0.5 text-[10px] text-fg-muted leading-snug">{t("recommended")}</p>
             </div>
-            <p className="mt-2 text-[10px] text-fg-muted/50">
-              RAW, HEIC, and AVIF files are processed via ExifTool (auto-installed). Standard formats are decoded natively.
-            </p>
-          </div>
-
-          {/* Detection threshold setting */}
-          <div className="mt-5 flex items-center justify-between rounded-xl border border-edge bg-surface-elevated/50 px-6 py-4">
-            <div>
-              <h3 className="text-[13px] font-semibold text-fg">Detection Threshold</h3>
-              <p className="mt-1 text-[11px] text-fg-muted">
-                Minimum confidence for face detection. Lower = more faces found (may include false positives).
-                Higher = fewer faces, more accurate. Recommended: 0.50.
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <input
                 type="range"
                 min={0.1}
@@ -261,14 +354,41 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFolderSelected }) => {
                 step={0.05}
                 value={detectionThreshold}
                 onChange={(e) => setDetectionThreshold(parseFloat(e.target.value))}
-                title="Face detection confidence threshold"
-                className="h-1.5 w-32 cursor-pointer appearance-none rounded-full bg-surface accent-accent"
+                title={t("detection_threshold")}
+                className="h-1.5 w-28 cursor-pointer appearance-none rounded-full bg-surface accent-accent"
               />
-              <span className="w-10 text-right text-[15px] font-bold tabular-nums text-accent">
+              <span className="w-9 text-right text-[14px] font-bold tabular-nums text-accent">
                 {detectionThreshold.toFixed(2)}
               </span>
             </div>
           </div>
+
+          {/* Supported formats — collapsible */}
+          <button
+            onClick={() => setShowFormats(!showFormats)}
+            className="mt-3 flex w-full items-center gap-2 rounded-xl border border-edge bg-surface-elevated/30 px-5 py-2.5 text-left transition-colors hover:bg-surface-elevated/50"
+          >
+            <svg className="h-3.5 w-3.5 text-fg-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            <span className="flex-1 text-[11px] font-medium text-fg-muted/60">{t("supported_formats")} — {FORMATS.length} formats</span>
+            <svg className={`h-3 w-3 text-fg-muted/40 transition-transform ${showFormats ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+
+          {showFormats && (
+            <div className="mt-1.5 rounded-xl border border-edge bg-surface-elevated/30 px-5 py-3">
+              <div className="flex flex-wrap gap-1.5">
+                {FORMATS.map((fmt) => (
+                  <span key={fmt} className="rounded-md bg-surface/80 px-2 py-0.5 text-[10px] font-medium tabular-nums text-fg-muted">
+                    {fmt}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] text-fg-muted/50">{t("formats_note")}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
