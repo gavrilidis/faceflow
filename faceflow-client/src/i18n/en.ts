@@ -82,10 +82,14 @@ export const en = {
   // AI
   ai_integration: "AI Integration",
   ai_provider: "Provider",
+  ai_model: "Model",
   ai_api_key: "API Key",
   ai_api_key_placeholder: "Enter your API key",
   ai_connected: "Connected",
   ai_not_configured: "Not configured",
+  ai_test_connection: "Test connection",
+  ai_test_success: "Connection successful",
+  ai_test_failed: "Connection failed",
   ai_analyze: "AI Analyze",
   ai_analyzing: "Analyzing {done}/{total}...",
   ai_analyze_selected: "Analyze selected photos with AI",
@@ -115,6 +119,7 @@ export const en = {
   toolbar_compare: "Compare",
   toolbar_reveal: "Reveal in Finder",
   toolbar_export: "Export",
+  toolbar_export_xmp: "Export XMP",
   toolbar_move_to: "Move to...",
   toolbar_new_person: "New person group",
   toolbar_min_gap: "{gap}min gap",
@@ -148,6 +153,7 @@ export const en = {
 
   // Glass
   glass_intensity: "Glass Effect",
+  face_match_sensitivity: "Face matching sensitivity",
 
   // HelpDialog
   help_title: "FaceFlow Help",
@@ -269,6 +275,8 @@ export const en = {
   badge_picked: "Picked",
   badge_rejected: "Rejected",
   badge_ai_tagged: "AI tags applied",
+  xmp_export_done: "XMP exported: {count}",
+  xmp_export_failed: "XMP export failed",
 } as const;
 
 export type TranslationKey = keyof typeof en;

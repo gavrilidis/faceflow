@@ -21,6 +21,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
+            // TODO: Add Sentry crash reporting (tauri-plugin-sentry) after beta period.
 
             // Initialize SQLite database in app data directory
             let app_data = app
@@ -29,10 +30,10 @@ pub fn run() {
                 .map_err(|e| format!("Failed to get app data dir: {e}"))
                 .expect("app data dir must be available");
             let db_path = app_data.join("faceflow.db");
-            let conn =
+            let pool =
                 services::database::open_database(&db_path).expect("Failed to initialize database");
 
-            app.manage(DbState(std::sync::Mutex::new(conn)));
+            app.manage(DbState(pool));
             app.manage(ModelState(std::sync::Mutex::new(None)));
 
             Ok(())
@@ -64,7 +65,12 @@ pub fn run() {
             commands::scan::read_exif_metadata,
             commands::scan::compute_blur_score,
             commands::scan::export_photos,
+            commands::scan::export_xmp_sidecars,
             commands::scan::auto_group_by_event,
+            services::secrets::save_secret,
+            services::secrets::get_secret,
+            services::secrets::delete_secret,
+            services::clustering::cluster_faces_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

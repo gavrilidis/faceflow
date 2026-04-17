@@ -84,10 +84,14 @@ export const ru: Record<TranslationKey, string> = {
   // AI
   ai_integration: "ИИ-интеграция",
   ai_provider: "Провайдер",
+  ai_model: "Модель",
   ai_api_key: "API-ключ",
   ai_api_key_placeholder: "Введите ваш API-ключ",
   ai_connected: "Подключен",
   ai_not_configured: "Не настроен",
+  ai_test_connection: "Проверить подключение",
+  ai_test_success: "Подключение успешно",
+  ai_test_failed: "Ошибка подключения",
   ai_analyze: "ИИ-анализ",
   ai_analyzing: "Анализ {done}/{total}...",
   ai_analyze_selected: "Проанализировать выбранные фото с ИИ",
@@ -117,6 +121,7 @@ export const ru: Record<TranslationKey, string> = {
   toolbar_compare: "Сравнить",
   toolbar_reveal: "Показать в Finder",
   toolbar_export: "Экспорт",
+  toolbar_export_xmp: "Экспорт XMP",
   toolbar_move_to: "Переместить в...",
   toolbar_new_person: "Новая группа",
   toolbar_min_gap: "{gap}мин интервал",
@@ -150,6 +155,7 @@ export const ru: Record<TranslationKey, string> = {
 
   // Glass
   glass_intensity: "Эффект стекла",
+  face_match_sensitivity: "Чувствительность сопоставления лиц",
 
   // HelpDialog
   help_title: "Справка FaceFlow",
@@ -271,4 +277,6 @@ export const ru: Record<TranslationKey, string> = {
   badge_picked: "Отобрано",
   badge_rejected: "Отклонено",
   badge_ai_tagged: "AI теги присвоены",
+  xmp_export_done: "XMP экспортировано: {count}",
+  xmp_export_failed: "Ошибка экспорта XMP",
 };
