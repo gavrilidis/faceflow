@@ -10,7 +10,9 @@ use sha2::{Digest, Sha256};
 use sysinfo::Disks;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::services::{activation, database, extractor, inference, inference::FaceModels, scanner, xmp};
+use crate::services::{
+    activation, database, extractor, inference, inference::FaceModels, scanner, xmp,
+};
 
 /// Maximum retries for transient inference failures.
 const MAX_RETRIES: u32 = 3;
@@ -225,8 +227,16 @@ pub fn read_photo_base64(file_path: String) -> Result<String, String> {
 
 /// Check if the app is activated. Performs a background online license check
 /// and falls back to a 30-day grace period when offline.
+///
+/// Debug (dev) builds skip activation entirely — developers don't need a
+/// serial key while iterating. Release (DMG) builds always require a key.
 #[tauri::command]
 pub async fn check_activation(app: AppHandle) -> Result<bool, String> {
+    if cfg!(debug_assertions) {
+        log::info!("Debug build: activation check bypassed");
+        return Ok(true);
+    }
+
     let app_data = app
         .path()
         .app_data_dir()

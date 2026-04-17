@@ -12,11 +12,12 @@ fi
 # shellcheck source=/dev/null
 source "$ENV_FILE"
 
-FACEFLOW_SECRET="${FACEFLOW_SECRET:-dev_secret}"
+# Do NOT set FACEFLOW_SECRET — build.rs reads activation.secret automatically.
+unset FACEFLOW_SECRET
 
 echo "Building FaceFlow release DMG…"
 cd "$(dirname "$0")/faceflow-client"
-FACEFLOW_SECRET="$FACEFLOW_SECRET" npm run tauri build
+npm run tauri build
 
 echo ""
 echo "Done. DMG:"

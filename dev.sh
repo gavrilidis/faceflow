@@ -8,7 +8,10 @@ if [ -f "$HOME/.tauri/faceflow.env" ]; then
   source "$HOME/.tauri/faceflow.env"
 fi
 
+# Do NOT set FACEFLOW_SECRET — build.rs reads activation.secret automatically.
+unset FACEFLOW_SECRET
+
 (cd cloud-api && .venv/bin/python3 -m uvicorn app.main:app --reload --port 8000) &
-(cd faceflow-client && FACEFLOW_SECRET=dev_secret npm run tauri dev) &
+(cd faceflow-client && npm run tauri dev) &
 
 wait
